@@ -21,6 +21,8 @@
 #include "DegeneracyAlgorithm.h"
 #include "CliqueTools.h"
 
+
+
 // system includes
 #include <map>
 #include <list>
@@ -30,6 +32,10 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+
+#include <chrono> //DF: my addition
+
+//#define RETURN_CLIQUES_ONE_BY_ONE //DF my addition
 
 using namespace std;
 
@@ -108,10 +114,17 @@ string basename(string const &fileName)
     return sBaseName;
 }
 
-int main(int argc, char** argv)
+
+
+void MyPause()
+{
+    std::cin.get();
+}
+
+int Mymain(int argc, char** argv)
 {
     int failureCode(0);
-
+     int MAXCLIQUESIZE = 0; //DF: my addition 1/16
     map<string,string> mapCommandLineArgs;
 
     ProcessCommandLineArgs(argc, argv, mapCommandLineArgs);
@@ -222,20 +235,33 @@ int main(int argc, char** argv)
     }
 
 #ifdef PRINT_CLIQUES_ONE_BY_ONE
-    auto printClique = [bOneBasedVertexIds](list<int> const &clique) {
+
+    auto printClique = [bOneBasedVertexIds, &MAXCLIQUESIZE](list<int> const &clique) {
         list<int>::const_iterator it = clique.begin();
-
         int offset = bOneBasedVertexIds ? 1 : 0;
-
+        
+        int cliqueSizeCounter=0;  //DF: My addition: 1/15/18
+        
         if (it != clique.end()) {
             printf("%d", *it + offset); //cout << *it;
             ++it;
+           cliqueSizeCounter++;  //DF: My addition: 1/15/18
         }
         while (it != clique.end()) {
             printf(" %d", *it + offset); //cout << " " << *it;
             ++it;
+            cliqueSizeCounter++;  //DF: My addition: 1/15/18
         }
+        printf(" CliqueSize:%d",cliqueSizeCounter); //DF: My addition: 1/15/18
+       if(cliqueSizeCounter > MAXCLIQUESIZE){   //DF: My addition: 1/15/18
+          MAXCLIQUESIZE =  cliqueSizeCounter;     //DF: My addition: 1/15/18
+       }    
+       //DF: My addition: 1/15/18
         printf("\n"); //cout << endl;
+        
+         MyPause(); //DF my addition
+    
+       
     };
 
     pAlgorithm->AddCallBack(printClique);
@@ -272,8 +298,8 @@ int main(int argc, char** argv)
 
     // Run algorithm
     list<list<int>> cliques;
-
 #ifdef RETURN_CLIQUES_ONE_BY_ONE
+ 
     auto storeCliqueInList = [&cliques](list<int> const &clique) {
         cliques.push_back(clique);
     };
@@ -282,9 +308,12 @@ int main(int argc, char** argv)
 
     pAlgorithm->SetQuiet(bQuiet);
 
+    //DF : It is here where the code runs.
     RunAndPrintStats(pAlgorithm, cliques, bTableMode);
 
 ////    cout << "Last clique has size: " << cliques.back().size() << endl << flush;
+    
+   
 
     cliques.clear();
 
@@ -308,6 +337,17 @@ int main(int argc, char** argv)
 
     ////if (options.verify) {
     ////}
+     cout<<"Maximum size of a clique:"<<MAXCLIQUESIZE<<endl;  //DF: my addition 1/15/18
 
     return 0;
+}
+
+
+int main(int argc, char** argv)
+{
+    
+    int i = Mymain(argc,argv);
+    
+    
+    return i;
 }

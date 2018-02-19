@@ -82,6 +82,7 @@ TomitaAlgorithm::~TomitaAlgorithm()
 
 long TomitaAlgorithm::Run(list<list<int>> &cliques)
 {
+    cout <<"DF:Entering another layer;"<<endl; //DF my addition
     return listAllMaximalCliquesMatrix(
                 m_ppAdjacencyMatrix,
                 m_iNumVertices);
@@ -397,6 +398,7 @@ void TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
 {
 ////    stepsSinceLastReportedClique++;
     // if X is empty and P is empty, return partial clique as maximal
+        cout<<"DF: hee hee"<<endl;
     if(beginX >= beginP && beginP >= beginR)
     {
         (*cliqueCount)++;
