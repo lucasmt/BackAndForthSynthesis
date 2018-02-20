@@ -412,6 +412,7 @@ void TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
 ////        }
 ////
 ////        stepsSinceLastReportedClique = 0;
+        cout<<"DF: heeere heere!"<<endl;
         ExecuteCallBacks(partialClique);
         processClique(partialClique);
 
