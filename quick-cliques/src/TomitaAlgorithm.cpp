@@ -398,7 +398,7 @@ void TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
 {
 ////    stepsSinceLastReportedClique++;
     // if X is empty and P is empty, return partial clique as maximal
-        cout<<"DF: hee hee"<<endl;
+   //     cout<<"DF: hee hee"<<endl;
     if(beginX >= beginP && beginP >= beginR)
     {
         (*cliqueCount)++;
@@ -412,7 +412,7 @@ void TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
 ////        }
 ////
 ////        stepsSinceLastReportedClique = 0;
-        cout<<"DF: heeere heere!"<<endl;
+      //  cout<<"DF: heeere heere!"<<endl;
         ExecuteCallBacks(partialClique);
         processClique(partialClique);
 

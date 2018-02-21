@@ -15,7 +15,7 @@ SOURCES_TMP += HybridAlgorithm.cpp
 SOURCES_TMP += DegeneracyAlgorithm.cpp
 SOURCES_TMP += DegeneracyTools.cpp
 SOURCES_TMP += Tools.cpp
-SOURCES_TMP += myCliqueHolder.cpp
+#SOURCES_TMP += myCliqueHolder.cpp
 
 SOURCES=$(addprefix $(SOURCES_DIR)/, $(SOURCES_TMP))
 
@@ -31,7 +31,10 @@ EXECS = $(addprefix $(BIN_DIR)/, $(EXEC_NAMES))
 
 #DEFINE += -DDEBUG       #for debugging
 #DEFINE += -DMEMORY_DEBUG #for memory debugging.
-DEFINE += -DPRINT_CLIQUES_ONE_BY_ONE   #print cliques, one per line
+#DEFINE += -DPRINT_CLIQUES_ONE_BY_ONE   #print cliques, one per line
+
+
+
 
 # print cliques in tree-like format:
 #  - print each vertex that's evaluated
@@ -41,6 +44,8 @@ DEFINE += -DPRINT_CLIQUES_ONE_BY_ONE   #print cliques, one per line
 
 #some systems handle malloc and calloc with 0 bytes strangely.
 DEFINE += -DALLOW_ALLOC_ZERO_BYTES      # used by Eppstein and Strash (2011) 
+
+DEFINE += -DMSS_COMPUTATION   #Add the MSS Computation (DF: 2/20/18)
 
 #set CXX to generic g++ if not set.
 CXX ?= g++
