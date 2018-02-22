@@ -468,6 +468,7 @@ void runAndPrintStatsMatrix(long (*function)(char**,
 
 void RunAndPrintStats(Algorithm *pAlgorithm, list<list<int>> &cliques, bool const outputLatex)
 {
+  //  cout<<"DF: I'm runnning"<<endl;
     fprintf(stderr, "%s: ", pAlgorithm->GetName().c_str());
     fflush(stderr);
 
