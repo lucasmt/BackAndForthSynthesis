@@ -1,3 +1,5 @@
+#pragma once
+
 #include "CNFFormula.hpp"
 #include "open-wbo/MaxSATFormula.h"
 #include "open-wbo/algorithms/Alg_WBO.h"

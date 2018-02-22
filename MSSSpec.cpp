@@ -2,9 +2,9 @@
 
 using std::vector;
 
-MSSSpec::MSSSpec(vector<int> toggleVars, CNFFormula cnf)
+MSSSpec::MSSSpec(vector<int> indicatorVars, CNFFormula cnf)
 {
-  _toggleVars = toggleVars; 
+  _indicatorVars = indicatorVars; 
   _cnf = cnf;
 }
 
@@ -13,14 +13,14 @@ const CNFFormula& MSSSpec::outputCNF() const
   return _cnf;
 }
 
-const vector<int>& MSSSpec::toggleVars() const
+const vector<int>& MSSSpec::indicatorVars() const
 {
-  return _toggleVars;
+  return _indicatorVars;
 }
 
 VarSet MSSSpec::inputVars() const
 {
-  return VarSet(_toggleVars.begin(), _toggleVars.end());
+  return VarSet(_indicatorVars.begin(), _indicatorVars.end());
 }
 
 VarSet MSSSpec::outputVars() const

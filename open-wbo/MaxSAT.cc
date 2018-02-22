@@ -544,3 +544,16 @@ std::pair<uint64_t, int> MaxSAT::getLB() {
 
   return std::make_pair(lb, nb_relaxed);
 }
+
+vector<int> MaxSAT::getModel() const
+{
+  assert (model.size() != 0);
+
+  vector<int> m;
+
+  for (int i = 0; i < model.size(); i++)
+    if (model[i] == l_True)
+      m.push_back(i);
+
+  return model;
+}

@@ -7,7 +7,7 @@
 
 class MSSSpec
 {
-  std::vector<int> _toggleVars;
+  std::vector<int> _indicatorVars;
   CNFFormula _cnf;
 
 public:
@@ -15,7 +15,7 @@ public:
   MSSSpec(std::vector<int> toggleVars, CNFFormula cnf);
 
   const CNFFormula& outputCNF() const;
-  const std::vector<int>& toggleVars() const;
+  const std::vector<int>& indicatorVars() const;
 
   VarSet inputVars() const;
   VarSet outputVars() const;

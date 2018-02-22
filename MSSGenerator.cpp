@@ -1,5 +1,11 @@
 #include "MSSGenerator.hpp"
 
+using std::vector;
+using openwbo::MaxSATFormula;
+using NSPACE::IntRange;
+using NSPACE::IntOption;
+using NSPACE::BoolOption;
+
 MSSGenerator::MSSGenerator(const vector<CNFClause>& clauses,
 			   const vector<int>& indicators)
   : solver(IntOption("Open-WBO", "verbosity",
@@ -18,8 +24,8 @@ MSSGenerator::MSSGenerator(const vector<CNFClause>& clauses,
 
   for (int i = 0; i < clauses.size(); i++)
   {
-    addHardClauseWithIndicator(clauses[i], indicators[i]);
-    addSoftClause(1, CNFClause(indicators[i]));
+    addHardClauseWithIndicator(clauses[i], indicators[i], &maxSatFormula);
+    addSoftClause(1, CNFClause(indicators[i]), &maxSatFormula);
   }
 
   maxSatFormula.setProblemType(_UNWEIGHTED_);
@@ -28,7 +34,7 @@ MSSGenerator::MSSGenerator(const vector<CNFClause>& clauses,
 
 void MSSGenerator::addSoftClause(uint64_t weight,
 				 const CNFClause& clause,
-				 const MaxSATFormula& formula)
+				 MaxSATFormula* formula)
 {
   vec<Lit> lits;
 
@@ -36,19 +42,19 @@ void MSSGenerator::addSoftClause(uint64_t weight,
   {
     int var = abs(l);
 
-    while (var >= formula.nVars())
-      formula.newVar();
+    while (var >= formula->nVars())
+      formula->newVar();
 
     lits.push((l > 0) ? mkLit(var) : ~mkLit(var));
   }
 
-  formula.setMaximumWeight(weight);
-  formula.updateSumWeights(weight);
-  formula.addSoftClause(weight, lits);
+  formula->setMaximumWeight(weight);
+  formula->updateSumWeights(weight);
+  formula->addSoftClause(weight, lits);
 }
 
 void MSSGenerator::addHardClause(const CNFClause& clause,
-				 const MaxSATFormula& formula)
+				 MaxSATFormula* formula)
 {
   vec<Lit> lits;
 
@@ -56,18 +62,18 @@ void MSSGenerator::addHardClause(const CNFClause& clause,
   {
     int var = abs(l);
 
-    while (var >= formula.nVars())
-      formula.newVar();
+    while (var >= formula->nVars())
+      formula->newVar();
 
     lits.push((l > 0) ? mkLit(var) : ~mkLit(var));
   }
 
-  formula.addHardClause(lits);
+  formula->addHardClause(lits);
 }
 
 void MSSGenerator::addHardClauseWithIndicator(const CNFClause& clause,
 					      int indicator,
-					      const MaxSATFormula& formula)
+					      MaxSATFormula* formula)
 {
   vec<Lit> lits;
 
@@ -75,15 +81,15 @@ void MSSGenerator::addHardClauseWithIndicator(const CNFClause& clause,
   {
     int var = abs(l);
 
-    while (var >= formula.nVars())
-      formula.newVar();
+    while (var >= formula->nVars())
+      formula->newVar();
 
     lits.push((l > 0) ? mkLit(var) : ~mkLit(var));
   }
 
   lits.push(~mkLit(indicator));
 
-  formula.addHardClause(lits);
+  formula->addHardClause(lits);
 }
 
 void MSSGenerator::blockSubset(const vector<int>& vars)
@@ -98,24 +104,25 @@ void MSSGenerator::blockSubset(const vector<int>& vars)
 
 vector<int> MSSGenerator::generateMSS()
 {
-  if (solver.getMaxSATFormula() == NULL)
-    solver.loadFormula(&maxSatFormula);
+  solver.loadFormula(&maxSatFormula);
 
   solver.search();
 
-  return solver.model();
+  return solver.getModel();
 }
 
 vector<int> MSSGenerator::generateMSSCovering(const vector<int>& vars)
 {
-  MaxSATFormula copy = maxSatFormula;
+  MaxSATFormula* copy = maxSatFormula.copyMaxSATFormula();
 
   for (int var : vars)
     addHardClause(CNFClause(var), copy);
 
-  copy.search();
+  solver.loadFormula(copy);
 
-  return copy.model();
+  solver.search();
+
+  return solver.getModel();
 }
 
 /*

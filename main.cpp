@@ -196,31 +196,64 @@ void writeCNF(const CNFFormula& cnf, const string& path)
   }
 }
 
+vector<vector<int>> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
+{
+  Graph graph = f1.conflictGraph().complement();
+  CNFFormula cnf = f2.outputCNF();
+  const vector<CNFClause>& clauses = cnf.clauses();
+  const vector<int>& indicatorVars = f2.indicatorVars();
+
+  MSSGenerator mssGen(clauses, indicatorVars);
+  
+  vector<VarSet> implementation;
+
+  auto callback = [const &indicatorVars, &mssGen, &implementation]
+    (const list<int>& clique)
+    {
+      VarSet mfs;
+
+      for (int v : clique)
+	mfs.insert(indicatorVars[v]);
+      
+      bool success;
+
+      if (mfs.subsetOfAny(implementation))
+	success = mssGen.generateMSS();
+      else
+	success = mssGen.generateMSSCovering(mfs);
+
+      if (success)
+	implementation.insert(mssGen.getMSS());
+
+      return success;
+    };
+
+  MFSGenerator mfsGen(graph, callback);
+
+  mfsGen.run();
+
+  return implementation;
+}
+
 int main(int argc, char** argv)
 {
-  if (argc < 4)
+  if (argc < 2)
   {
-    cout << "Expected format: decomp <input-file> <output-file-graph> <output-file-cnf>" << endl;
+    cout << "Expected format: decomp <input-file>" << endl;
   }
   else
   {
     try
     {
       string inputPath(argv[1]);
-      string graphPath(argv[2]);
-      string cnfPath(argv[3]);
+      //string graphPath(argv[2]);
+      //string cnfPath(argv[3]);
 
       CNFSpec f = loadDIMACS(inputPath);
 
       CNFChain cnfChain = cnfDecomp(f);
 
-      TrivialSpec f1 = cnfChain.first();
-      Graph graph = f1.conflictGraph().complement();
-      writeGraph(graph, graphPath);
-
-      MSSSpec f2 = cnfChain.second();
-      CNFFormula cnf = f2.outputCNF();
-      writeCNF(cnf, cnfPath);
+      algorithm(cnfChain.first(), cnfChain.second());
     }
     catch (const runtime_error& e)
     {

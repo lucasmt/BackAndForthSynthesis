@@ -155,6 +155,8 @@ public:
   void setPrintModel(bool model) { print_model = model; }
   bool getPrintModel() { return print_model; }
 
+  std::vector<int> getModel() const;
+
 protected:
   // Interface with the SAT solver
   //
