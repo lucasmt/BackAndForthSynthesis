@@ -35,9 +35,10 @@ using namespace openwbo;
  //
  ************************************************************************************************/
 
-void MaxSAT::search() {
+bool MaxSAT::search() {
   printf("Error: Invalid MaxSAT algoritm.\n");
   exit(_ERROR_);
+  return false;
 }
 
 void MaxSAT::setInitialTime(double initial) {
@@ -545,15 +546,15 @@ std::pair<uint64_t, int> MaxSAT::getLB() {
   return std::make_pair(lb, nb_relaxed);
 }
 
-vector<int> MaxSAT::getModel() const
+std::vector<int> MaxSAT::getModel() const
 {
   assert (model.size() != 0);
 
-  vector<int> m;
+  std::vector<int> m;
 
   for (int i = 0; i < model.size(); i++)
     if (model[i] == l_True)
       m.push_back(i);
 
-  return model;
+  return m;
 }

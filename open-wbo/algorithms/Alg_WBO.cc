@@ -794,7 +794,7 @@ void WBO::symmetryBreaking() {
   |     by 1. Otherwise, 'nbCores' is increased by 1.
   |
   |________________________________________________________________________________________________@*/
-void WBO::unsatSearch() {
+bool WBO::unsatSearch() {
 
   assert(assumptions.size() == 0);
 
@@ -803,8 +803,9 @@ void WBO::unsatSearch() {
 
   if (res == l_False) {
     nbCores++;
-    printAnswer(_UNSATISFIABLE_);
-    exit(_UNSATISFIABLE_);
+    //printAnswer(_UNSATISFIABLE_);
+    //exit(_UNSATISFIABLE_);
+    return false;
   } else if (res == l_True) {
     nbSatisfiable++;
     uint64_t cost = computeCostModel(solver->model);
@@ -816,6 +817,8 @@ void WBO::unsatSearch() {
 
   delete solver;
   solver = NULL;
+
+  return true;
 }
 
 /*_________________________________________________________________________________________________
@@ -843,12 +846,13 @@ void WBO::unsatSearch() {
   |    * 'nbSatisfiable' is updated.
   |    * 'nbCores' is updated.
   |________________________________________________________________________________________________@*/
-void WBO::weightSearch() {
+bool WBO::weightSearch() {
 
   assert(weightStrategy == _WEIGHT_NORMAL_ ||
          weightStrategy == _WEIGHT_DIVERSIFY_);
 
-  unsatSearch();
+  if (!unsatSearch())
+    return false;
 
   initAssumptions(assumptions);
   updateCurrentWeight(weightStrategy);
@@ -905,6 +909,8 @@ void WBO::weightSearch() {
       }
     }
   }
+
+  return true;
 }
 
 /*_________________________________________________________________________________________________
@@ -926,9 +932,10 @@ void WBO::weightSearch() {
   |    * 'nbCores' is updated.
   |
   |________________________________________________________________________________________________@*/
-void WBO::normalSearch() {
+bool WBO::normalSearch() {
 
-  unsatSearch();
+  if (!unsatSearch())
+    return false;
 
   initAssumptions(assumptions);
   solver = rebuildSolver();
@@ -968,10 +975,12 @@ void WBO::normalSearch() {
       exit(_OPTIMUM_);
     }
   }
+
+  return true;
 }
 
 // Public search method
-void WBO::search() {
+bool WBO::search() {
   //  nbInitialVariables = maxsat_formula->nVars();
 
   // If the maximum weight of the soft clauses is 1 then the problem is
@@ -988,10 +997,12 @@ void WBO::search() {
 
   if (maxsat_formula->getProblemType() == _UNWEIGHTED_ ||
       weightStrategy == _WEIGHT_NONE_)
-    normalSearch();
+    return normalSearch();
   else if (weightStrategy == _WEIGHT_NORMAL_ ||
            weightStrategy == _WEIGHT_DIVERSIFY_)
-    weightSearch();
+    return weightSearch();
+
+  return true;
 }
 
 /************************************************************************************************

@@ -1,20 +1,35 @@
-CXX=g++
-CXXFLAGS= -std=c++11 -O2
-
-HDIR=open-wbo/solvers/glucose4.1
-
-ODIR=.
-
-_OBJ = CNFChain.o CNFFormula.o CNFSpec.o Graph.o MSSSpec.o TrivialSpec.o VarSet.o WeightedGraph.o
-OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
-
-decomp: $(OBJ)
-	$(CXX) -o decomp main.cpp $^ $(CXXFLAGS)
-
-$(ODIR)/%.o: %.cpp
-	$(CXX) -c -o $@ $< $(CXXFLAGS) -I$(HDIR) -DNSPACE=Glucose
-
-.PHONY: clean
-
-clean:
-	rm -f $(ODIR)/*.o decomp
+# VERSION    = core or simp 
+# SOLVERNAME = name of the SAT solver
+# SOLVERDIR  = subdirectory of the SAT solver
+# NSPACE     = namespace of the SAT solver
+# 
+# e.g. minisat compilation with core version:
+#
+# VERSION    = core
+# SOLVERNAME = "Minisat"
+# SOLVERDIR  = minisat
+# NSPACE     = Minisat
+#
+VERSION    = core
+SOLVERNAME = "Glucose4.1"
+SOLVERDIR  = glucose4.1
+NSPACE     = Glucose
+# THE REMAINING OF THE MAKEFILE SHOULD BE LEFT UNCHANGED
+EXEC       = decomp
+DEPDIR     = mtl utils core
+DEPDIR 	   += ../..
+DEPDIR     +=  ../../encodings ../../algorithms ../../graph ../../classifier
+DEPDIR     += ../../../quick-cliques/src
+MROOT      = $(PWD)/open-wbo/solvers/$(SOLVERDIR)
+LFLAGS     += -lgmpxx -lgmp
+CFLAGS     = -Wall -Wno-parentheses -std=c++11 -DNSPACE=$(NSPACE) -DSOLVERNAME=$(SOLVERNAME) -DVERSION=$(VERSION) -DALLOW_ALLOC_ZERO_BYTES
+ifeq ($(VERSION),simp)
+DEPDIR     += simp
+CFLAGS     += -DSIMP=1 
+ifeq ($(SOLVERDIR),glucored)
+LFLAGS     += -pthread
+CFLAGS     += -DGLUCORED
+DEPDIR     += reducer glucored
+endif
+endif
+include $(MROOT)/mtl/template.mk

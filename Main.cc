@@ -5,6 +5,7 @@
 #include <map>
 #include <utility>
 #include <algorithm>
+#include <list>
 
 #include "CNFChain.hpp"
 #include "CNFFormula.hpp"
@@ -13,6 +14,8 @@
 #include "TrivialSpec.hpp"
 #include "VarSet.hpp"
 #include "Graph.hpp"
+#include "MSSGenerator.hpp"
+#include "MFSGenerator.hpp"
 
 using std::cout;
 using std::endl;
@@ -27,6 +30,7 @@ using std::pair;
 using std::make_pair;
 using std::move;
 using std::max;
+using std::list;
 
 void skipComments(ifstream& in)
 {
@@ -139,7 +143,7 @@ CNFChain cnfDecomp(const CNFSpec& spec)
   vector<int> toggleVars;
   CNFFormula outputCNF;
 
-  for (CNFClause c : cnf.clauses())
+  for (const CNFClause& c : cnf.clauses())
   {
     z++;
     toggleVars.push_back(z);
@@ -196,7 +200,7 @@ void writeCNF(const CNFFormula& cnf, const string& path)
   }
 }
 
-vector<vector<int>> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
+vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
 {
   Graph graph = f1.conflictGraph().complement();
   CNFFormula cnf = f2.outputCNF();
@@ -207,7 +211,7 @@ vector<vector<int>> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
   
   vector<VarSet> implementation;
 
-  auto callback = [const &indicatorVars, &mssGen, &implementation]
+  auto callback = [&indicatorVars, &mssGen, &implementation]
     (const list<int>& clique)
     {
       VarSet mfs;
@@ -220,10 +224,14 @@ vector<vector<int>> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
       if (mfs.subsetOfAny(implementation))
 	success = mssGen.generateMSS();
       else
-	success = mssGen.generateMSSCovering(mfs);
+	success = mssGen.generateMSSCovering(mfs.vars());
 
       if (success)
-	implementation.insert(mssGen.getMSS());
+      {
+	VarSet mss = mssGen.getMSS();
+	implementation.push_back(mss);
+	mssGen.blockSubset(mss.vars());
+      }
 
       return success;
     };
@@ -261,3 +269,4 @@ int main(int argc, char** argv)
     }
   }
 }
+

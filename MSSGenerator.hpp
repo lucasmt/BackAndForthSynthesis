@@ -4,6 +4,7 @@
 #include "open-wbo/MaxSATFormula.h"
 #include "open-wbo/algorithms/Alg_WBO.h"
 #include <vector>
+#include <set>
 
 class MSSGenerator
 {
@@ -26,9 +27,11 @@ public:
   MSSGenerator(const std::vector<CNFClause>& clauses,
 	       const std::vector<int>& indicators);
 
-  void blockSubset(const std::vector<int>& vars);
+  void blockSubset(const std::set<int>& vars);
 
-  std::vector<int> generateMSS();
+  bool generateMSS();
 
-  std::vector<int> generateMSSCovering(const std::vector<int>& vars);
+  bool generateMSSCovering(const std::set<int>& vars);
+
+  VarSet getMSS() const;
 };

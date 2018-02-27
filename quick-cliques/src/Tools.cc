@@ -132,12 +132,12 @@ void printArrayOfLinkedLists(vector<list<int>> const &arrayOfLists, int size)
 {
     // list graph contents
 
-    int i = 0;
+    size_t i = 0;
     while (i < arrayOfLists.size())
     {
         if (!arrayOfLists[i].empty())
         {
-            printf("%d:", i);
+            printf("%zu:", i);
             printListAbbv(arrayOfLists[i], &Tools::printInt);
         }
         i++;
@@ -242,7 +242,7 @@ vector<list<int>> readInGraphAdjList(int* n, int* m)
     }
 
 #ifdef DEBUG
-    printArrayOfLinkedLists(adjList, *n);
+    //printArrayOfLinkedLists(adjList, *n);
 #endif
 
     return adjList;
@@ -310,7 +310,7 @@ vector<list<int>> readInGraphAdjListEdgesPerLine(int &n, int &m, string const &f
     }
 
 #ifdef DEBUG
-    printArrayOfLinkedLists(adjList, n);
+    //printArrayOfLinkedLists(adjList, n);
 #endif
 
     return adjList;
@@ -368,7 +368,7 @@ vector<list<int>> readInGraphAdjList(int &n, int &m, string const &fileName)
     }
 
 #ifdef DEBUG
-    printArrayOfLinkedLists(adjList, n);
+    //printArrayOfLinkedLists(adjList, n);
 #endif
 
     return adjList;
@@ -419,7 +419,7 @@ vector<list<int>> readInGraphAdjListDimacs(int &n, int &m, string const &fileNam
     }
 
 #ifdef DEBUG
-    printArrayOfLinkedLists(adjList, n);
+    //printArrayOfLinkedLists(adjList, n);
 #endif
 
     return adjList;
@@ -500,7 +500,7 @@ void Tools::printList(list<int> const &linkedList, void (*printFunc)(int))
 #ifdef DEBUG
     printf("printList...\n");
 #endif
-    int count = 0;
+    size_t count = 0;
     for (int const value : linkedList) {
         printFunc(value);
         if (++count != linkedList.size()) {
@@ -525,7 +525,7 @@ void printListAbbv(list<int> const &linkedList, void (*printFunc)(int))
 #ifdef DEBUG
     printf("printListAbbv...\n");
 #endif
-    int count = 0;
+    size_t count = 0;
 
     for (list<int>::const_iterator cit = linkedList.begin();
          cit != linkedList.end() && count != 10; ++cit)
@@ -629,10 +629,10 @@ void InvertGraph(vector<list<int>> const &adjList)
 
     cout << numEdgesInInverse << endl;
 
-    for (int i = 0; i < adjList.size(); ++i) {
+    for (size_t i = 0; i < adjList.size(); ++i) {
         set<int> setNeighbors;
         setNeighbors.insert(adjList[i].begin(), adjList[i].end());
-        for (int neighbor=0; neighbor < adjList.size(); neighbor++) {
+        for (size_t neighbor=0; neighbor < adjList.size(); neighbor++) {
             if (setNeighbors.find(neighbor) == setNeighbors.end() && neighbor != i) {
                 cout << "(" << i << "," << neighbor << i << ")" << endl;
             }
@@ -659,7 +659,7 @@ vector<int> Tools::ReadMetisOrdering(string const &fileName)
 
     vector<int> ordering;
 
-    int u, v; // endvertices, to read edges.
+    int v; // endvertices, to read edges.
 
     if (!instream.good()  || instream.eof()) {
         fprintf(stderr, "ERROR: Problem reading line 1 in file %s\n", fileName.c_str());
@@ -689,7 +689,7 @@ vector<int> Tools::ReadMetisOrdering(string const &fileName)
     }
 
 #ifdef DEBUG
-    printArrayOfLinkedLists(adjList, n);
+    //printArrayOfLinkedLists(adjList, n);
 #endif
 
     return ordering;

@@ -265,7 +265,7 @@ void LinearSU::normalSearch() {
 }
 
 // Public search method
-void LinearSU::search() {
+bool LinearSU::search() {
 
   if (maxsat_formula->getProblemType() == _WEIGHTED_)
     is_bmo = isBMO();
@@ -279,6 +279,8 @@ void LinearSU::search() {
       normalSearch();
   } else
     normalSearch();
+
+  return true;
 }
 
 /************************************************************************************************

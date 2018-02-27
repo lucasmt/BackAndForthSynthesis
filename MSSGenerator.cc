@@ -1,6 +1,7 @@
 #include "MSSGenerator.hpp"
 
 using std::vector;
+using std::set;
 using openwbo::MaxSATFormula;
 using NSPACE::IntRange;
 using NSPACE::IntOption;
@@ -22,7 +23,7 @@ MSSGenerator::MSSGenerator(const vector<CNFClause>& clauses,
   int hardWeight = clauses.size() + 1;
   maxSatFormula.setHardWeight(hardWeight);
 
-  for (int i = 0; i < clauses.size(); i++)
+  for (size_t i = 0; i < clauses.size(); i++)
   {
     addHardClauseWithIndicator(clauses[i], indicators[i], &maxSatFormula);
     addSoftClause(1, CNFClause(indicators[i]), &maxSatFormula);
@@ -92,7 +93,7 @@ void MSSGenerator::addHardClauseWithIndicator(const CNFClause& clause,
   formula->addHardClause(lits);
 }
 
-void MSSGenerator::blockSubset(const vector<int>& vars)
+void MSSGenerator::blockSubset(const set<int>& vars)
 {
   vec<Lit> lits;
 
@@ -102,16 +103,14 @@ void MSSGenerator::blockSubset(const vector<int>& vars)
   maxSatFormula.addHardClause(lits);
 }
 
-vector<int> MSSGenerator::generateMSS()
+bool MSSGenerator::generateMSS()
 {
   solver.loadFormula(&maxSatFormula);
 
-  solver.search();
-
-  return solver.getModel();
+  return solver.search();
 }
 
-vector<int> MSSGenerator::generateMSSCovering(const vector<int>& vars)
+bool MSSGenerator::generateMSSCovering(const set<int>& vars)
 {
   MaxSATFormula* copy = maxSatFormula.copyMaxSATFormula();
 
@@ -120,9 +119,14 @@ vector<int> MSSGenerator::generateMSSCovering(const vector<int>& vars)
 
   solver.loadFormula(copy);
 
-  solver.search();
+  return solver.search();
+}
 
-  return solver.getModel();
+VarSet MSSGenerator::getMSS() const
+{
+  vector<int> model = solver.getModel();
+
+  return VarSet(model.begin(), model.end());
 }
 
 /*

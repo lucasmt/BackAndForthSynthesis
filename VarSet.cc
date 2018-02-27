@@ -36,3 +36,17 @@ bool VarSet::isElem(int v) const
 {
   return _vars.find(v) != _vars.end();
 }
+
+bool VarSet::subsetOfAny(const vector<VarSet>& supersets) const
+{
+  for (const VarSet& superset : supersets)
+  {
+    bool isSubset = includes(superset._vars.begin(), superset._vars.end(),
+			     _vars.begin(), _vars.end());
+   
+    if (isSubset)
+      return true;
+  }
+
+  return false;
+}

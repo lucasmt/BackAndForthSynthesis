@@ -1,4 +1,4 @@
-/*!
+/*
  * \author Ruben Martins - ruben@sat.inesc-id.pt
  *
  * @section LICENSE
@@ -115,7 +115,7 @@ public:
   // Incremental information.
   void print_Incremental_configuration(int incremental);
 
-  virtual void search();      // MaxSAT search.
+  virtual bool search();      // MaxSAT search.
   void printAnswer(int type); // Print the answer.
 
   // Tests if a MaxSAT formula has a lexicographical optimization criterion.
@@ -213,3 +213,4 @@ protected:
 } // namespace openwbo
 
 #endif
+

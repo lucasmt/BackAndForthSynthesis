@@ -16,7 +16,7 @@ Algorithm::~Algorithm()
 {
 }
 
-void Algorithm::AddCallBack(std::function<void(std::list<int> const&)> callback)
+void Algorithm::AddCallBack(std::function<bool(std::list<int> const&)> callback)
 {
     m_vCallBacks.push_back(callback);
 }
@@ -24,7 +24,9 @@ void Algorithm::AddCallBack(std::function<void(std::list<int> const&)> callback)
 void Algorithm::ExecuteCallBacks(std::list<int> const &vertexSet) const
 {
     for (auto &function : m_vCallBacks) {
-        function(vertexSet);
+      bool cont = function(vertexSet);
+      
+      if (!cont) return;
     }
 }
 

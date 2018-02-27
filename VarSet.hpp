@@ -24,4 +24,6 @@ public:
   int max() const;
 
   bool isElem(int v) const;
+
+  bool subsetOfAny(const std::vector<VarSet>& supersets) const;
 };

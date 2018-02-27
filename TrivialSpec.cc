@@ -40,7 +40,7 @@ Graph TrivialSpec::conflictGraph() const
 {
   unordered_map<int,unordered_set<int>> zImplying;
 
-  for (int i = 0; i < _def.size(); i++)
+  for (size_t i = 0; i < _def.size(); i++)
   {
     for (int x : _def[i])
       zImplying[x].insert(i);

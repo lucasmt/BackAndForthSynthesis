@@ -19,7 +19,7 @@ public:
     void SetName(std::string const &name);
     std::string GetName() const;
 
-    void AddCallBack(std::function<void(std::list<int> const&)> callback);
+    void AddCallBack(std::function<bool(std::list<int> const&)> callback);
 
     void ExecuteCallBacks(std::list<int> const &vertexSet) const;
 
@@ -29,7 +29,7 @@ public:
 private:
     std::string m_sName;
     bool m_bQuiet;
-    std::vector<std::function<void(std::list<int> const&)>> m_vCallBacks;
+    std::vector<std::function<bool(std::list<int> const&)>> m_vCallBacks;
 };
 
 #endif //ALGORITHM_H

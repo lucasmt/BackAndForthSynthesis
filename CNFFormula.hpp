@@ -28,7 +28,7 @@ public:
   CNFFormula(std::vector<CNFClause> clauses);
 
   const std::vector<CNFClause>& clauses() const;
-  std::vector<CNFClause>& clauses();
+  //std::vector<CNFClause>& clauses();
 
   CNFFormula& operator&=(CNFClause clause);
   CNFFormula& operator&=(CNFFormula other);
