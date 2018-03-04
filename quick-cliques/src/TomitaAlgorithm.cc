@@ -82,7 +82,7 @@ TomitaAlgorithm::~TomitaAlgorithm()
 
 long TomitaAlgorithm::Run(list<list<int>> &cliques)
 {
-    cout <<"DF:Entering another layer;"<<endl; //DF my addition
+  //cout <<"DF:Entering another layer;"<<endl; //DF my addition
     return listAllMaximalCliquesMatrix(
                 m_ppAdjacencyMatrix,
                 m_iNumVertices);
@@ -390,7 +390,7 @@ inline void moveFromRToXMatrix( int vertex,
 
 */
 
-void TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
+bool TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
                                            list<int> &partialClique, 
                                            char** adjacencyMatrix,
                                            int* vertexSets, int* vertexLookup, int size,
@@ -413,15 +413,15 @@ void TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
 ////
 ////        stepsSinceLastReportedClique = 0;
       //  cout<<"DF: heeere heere!"<<endl;
-        ExecuteCallBacks(partialClique);
+        bool cont = ExecuteCallBacks(partialClique);
         processClique(partialClique);
 
-        return;
+        return cont;
     }
 
     // avoid work if P is empty.
     if(beginP >= beginR)
-        return;
+        return true;
 
     int* myCandidatesToIterateThrough;
     int numCandidatesToIterateThrough;
@@ -462,11 +462,17 @@ void TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
                        &newBeginX, &newBeginP, &newBeginR);
 
         // recursively compute maximal cliques with new sets R, P and X
-        listAllMaximalCliquesMatrixRecursive( cliqueCount, 
+        bool cont = listAllMaximalCliquesMatrixRecursive( cliqueCount, 
                                               partialClique,
                                               adjacencyMatrix,
                                               vertexSets, vertexLookup, size,
                                               newBeginX, newBeginP, newBeginR, stepsSinceLastReportedClique );
+
+	if (!cont)
+	{
+	  Free(myCandidatesToIterateThrough);
+	  return cont;
+	}
 
         #ifdef PRINT_CLIQUES_TOMITA_STYLE
         printf("b ");
@@ -502,4 +508,6 @@ void TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
     }
 
     stepsSinceLastReportedClique++;
+
+    return true;
 }

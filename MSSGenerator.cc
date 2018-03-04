@@ -1,5 +1,7 @@
 #include "MSSGenerator.hpp"
 
+#include <limits>
+
 using std::vector;
 using std::set;
 using openwbo::MaxSATFormula;
@@ -20,7 +22,7 @@ MSSGenerator::MSSGenerator(const vector<CNFClause>& clauses,
 		     "Limit on the number of symmetry breaking clauses.\n", 500000,
 		     IntRange(0, INT32_MAX)))
 {
-  int hardWeight = clauses.size() + 1;
+  int hardWeight = std::numeric_limits<int>::max();
   maxSatFormula.setHardWeight(hardWeight);
 
   for (size_t i = 0; i < clauses.size(); i++)
@@ -93,12 +95,12 @@ void MSSGenerator::addHardClauseWithIndicator(const CNFClause& clause,
   formula->addHardClause(lits);
 }
 
-void MSSGenerator::blockSubset(const set<int>& vars)
+void MSSGenerator::enforceAtLeastOne(const set<int>& vars)
 {
   vec<Lit> lits;
 
   for (int var : vars)
-    lits.push(~mkLit(var));
+    lits.push(mkLit(var));
 
   maxSatFormula.addHardClause(lits);
 }

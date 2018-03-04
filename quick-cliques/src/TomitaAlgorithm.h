@@ -62,7 +62,7 @@ public:
                                      int* vertexSets, int* vertexLookup, int size,
                                      int beginX, int beginP, int beginR);
 
-    void listAllMaximalCliquesMatrixRecursive(long* cliqueCount,
+    bool listAllMaximalCliquesMatrixRecursive(long* cliqueCount,
                                            std::list<int> &partialClique, 
                                            char** adjacencyMatrix,
                                            int* vertexSets, int* vertexLookup, int size,

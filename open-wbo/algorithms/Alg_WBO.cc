@@ -796,6 +796,8 @@ void WBO::symmetryBreaking() {
   |________________________________________________________________________________________________@*/
 bool WBO::unsatSearch() {
 
+  assumptions.clear();
+
   assert(assumptions.size() == 0);
 
   solver = rebuildHardSolver();
@@ -812,7 +814,7 @@ bool WBO::unsatSearch() {
     assert(cost <= ubCost);
     ubCost = cost;
     saveModel(solver->model);
-    printf("o %" PRIu64 "\n", ubCost);
+    //printf("o %" PRIu64 "\n", ubCost);
   }
 
   delete solver;
@@ -884,24 +886,24 @@ bool WBO::weightSearch() {
         if (lbCost < ubCost) {
           ubCost = lbCost;
           saveModel(solver->model);
-          printf("o %" PRIu64 "\n", lbCost);
+          //printf("o %" PRIu64 "\n", lbCost);
         }
-        printAnswer(_OPTIMUM_);
-        exit(_OPTIMUM_);
+        //printAnswer(_OPTIMUM_);
+        return true;//exit(_OPTIMUM_);
       } else {
         updateCurrentWeight(weightStrategy);
         uint64_t cost = computeCostModel(solver->model);
         if (cost < ubCost) {
           ubCost = cost;
           saveModel(solver->model);
-          printf("o %" PRIu64 "\n", ubCost);
+          //printf("o %" PRIu64 "\n", ubCost);
         }
 
         if (lbCost == ubCost) {
           if (verbosity > 0)
             printf("c LB = UB\n");
-          printAnswer(_OPTIMUM_);
-          exit(_OPTIMUM_);
+          //printAnswer(_OPTIMUM_);
+          return true;//exit(_OPTIMUM_);
         }
 
         delete solver;
@@ -956,8 +958,8 @@ bool WBO::normalSearch() {
       if (lbCost == ubCost) {
         if (verbosity > 0)
           printf("c LB = UB\n");
-        printAnswer(_OPTIMUM_);
-        exit(_OPTIMUM_);
+        //printAnswer(_OPTIMUM_);
+        return true;//exit(_OPTIMUM_);
       }
 
       relaxCore(solver->conflict, coreCost, assumptions);
@@ -968,11 +970,11 @@ bool WBO::normalSearch() {
     if (res == l_True) {
       nbSatisfiable++;
       ubCost = computeCostModel(solver->model);
-      assert(lbCost == ubCost);
-      printf("o %" PRIu64 "\n", lbCost);
+      //assert(lbCost == ubCost);
+      //printf("o %" PRIu64 "\n", lbCost);
       saveModel(solver->model);
-      printAnswer(_OPTIMUM_);
-      exit(_OPTIMUM_);
+      //printAnswer(_OPTIMUM_);
+      return true;//exit(_OPTIMUM_);
     }
   }
 

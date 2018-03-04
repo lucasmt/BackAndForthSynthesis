@@ -26,4 +26,8 @@ public:
   bool isElem(int v) const;
 
   bool subsetOfAny(const std::vector<VarSet>& supersets) const;
+
+  void print() const;
+
+  VarSet setDifference(const VarSet& other) const;
 };

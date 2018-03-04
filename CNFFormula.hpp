@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VarSet.hpp"
+#include "Graph.hpp"
 
 class CNFClause
 {
@@ -35,6 +36,10 @@ public:
   CNFFormula operator&(const CNFFormula& other) const;
 
   VarSet vars() const;
+
+  CNFFormula projection(const std::set<int>& vars) const;
+
+  Graph dependencyGraph() const;
 };
 
   

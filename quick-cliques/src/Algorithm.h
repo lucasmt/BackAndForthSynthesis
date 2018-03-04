@@ -21,7 +21,7 @@ public:
 
     void AddCallBack(std::function<bool(std::list<int> const&)> callback);
 
-    void ExecuteCallBacks(std::list<int> const &vertexSet) const;
+    bool ExecuteCallBacks(std::list<int> const &vertexSet) const;
 
     void SetQuiet(bool const quiet);
     bool GetQuiet() const;

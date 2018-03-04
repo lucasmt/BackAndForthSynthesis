@@ -2,12 +2,15 @@
 
 #include <unordered_set>
 #include <unordered_map>
+#include <iostream>
 
 using std::map;
 using std::vector;
 using std::pair;
 using std::unordered_set;
 using std::unordered_map;
+using std::cout;
+using std::endl;
 
 TrivialSpec::TrivialSpec(const map<int,vector<int>>& def)
 {
@@ -43,7 +46,10 @@ Graph TrivialSpec::conflictGraph() const
   for (size_t i = 0; i < _def.size(); i++)
   {
     for (int x : _def[i])
+    {
       zImplying[x].insert(i);
+      zImplying[-x]; // to make sure there is entry for the negative literal
+    }
   }
 
   Graph graph(_def.size());
@@ -57,8 +63,23 @@ Graph TrivialSpec::conflictGraph() const
 
     for (int z1 : implyingX)
       for (int z2 : implyingNotX)
+      {
 	graph.addEdge(z1, z2);
+      }
   }
 
   return graph;
+}
+
+void TrivialSpec::print() const
+{
+  for (size_t i = 0; i < _def.size(); i++)
+  {
+    cout << _outputVars[i] << " <-> ";
+
+    for (int lit : _def[i])
+      cout << lit << " ";
+
+    cout << endl;
+  }
 }

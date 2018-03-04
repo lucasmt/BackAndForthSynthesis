@@ -1,9 +1,13 @@
 #include "VarSet.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 using std::set;
 using std::vector;
+using std::cout;
+using std::endl;
+using std::set_difference;
 
 VarSet::VarSet() {}
 
@@ -49,4 +53,27 @@ bool VarSet::subsetOfAny(const vector<VarSet>& supersets) const
   }
 
   return false;
+}
+
+void VarSet::print() const
+{
+  cout << "{ ";
+
+  for (int var : _vars)
+  {
+    cout << var << ", ";
+  }
+
+  cout << "}" << endl;
+}
+
+VarSet VarSet::setDifference(const VarSet& other) const
+{
+  vector<int> diff;
+
+  set_difference(_vars.begin(), _vars.end(),
+		 other._vars.begin(), other._vars.end(),
+		 std::inserter(diff, diff.end()));
+
+  return VarSet(diff.begin(), diff.end());
 }

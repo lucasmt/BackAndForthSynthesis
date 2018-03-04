@@ -97,8 +97,8 @@ public:
   }
 
   virtual ~MaxSAT() {
-    if (maxsat_formula != NULL)
-      delete maxsat_formula;
+    //if (maxsat_formula != NULL)
+    //delete maxsat_formula;
   }
 
   void setInitialTime(double initial); // Set initial time.

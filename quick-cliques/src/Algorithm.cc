@@ -21,13 +21,15 @@ void Algorithm::AddCallBack(std::function<bool(std::list<int> const&)> callback)
     m_vCallBacks.push_back(callback);
 }
 
-void Algorithm::ExecuteCallBacks(std::list<int> const &vertexSet) const
+bool Algorithm::ExecuteCallBacks(std::list<int> const &vertexSet) const
 {
     for (auto &function : m_vCallBacks) {
       bool cont = function(vertexSet);
       
-      if (!cont) return;
+      if (!cont) return false;
     }
+
+    return true;
 }
 
 void Algorithm::SetName(string const &name)

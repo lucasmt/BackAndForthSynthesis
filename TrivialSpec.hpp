@@ -22,4 +22,6 @@ public:
   VarSet outputVars() const;
 
   Graph conflictGraph() const;
+
+  void print() const;
 };

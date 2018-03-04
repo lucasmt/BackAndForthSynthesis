@@ -27,7 +27,7 @@ public:
   MSSGenerator(const std::vector<CNFClause>& clauses,
 	       const std::vector<int>& indicators);
 
-  void blockSubset(const std::set<int>& vars);
+  void enforceAtLeastOne(const std::set<int>& vars);
 
   bool generateMSS();
 

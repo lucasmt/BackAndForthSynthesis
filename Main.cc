@@ -6,6 +6,8 @@
 #include <utility>
 #include <algorithm>
 #include <list>
+#include <set>
+#include <chrono>
 
 #include "CNFChain.hpp"
 #include "CNFFormula.hpp"
@@ -31,6 +33,10 @@ using std::make_pair;
 using std::move;
 using std::max;
 using std::list;
+using std::set;
+using std::chrono::system_clock;
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
 
 void skipComments(ifstream& in)
 {
@@ -149,6 +155,8 @@ CNFChain cnfDecomp(const CNFSpec& spec)
     toggleVars.push_back(z);
     CNFClause outputClause;
 
+    def[z];
+
     for (int l : c.lits())
     {
       if (inputVars.isElem(abs(l)))
@@ -200,24 +208,44 @@ void writeCNF(const CNFFormula& cnf, const string& path)
   }
 }
 
+set<int> nonEmptyIndices(const CNFFormula& cnf)
+{
+  set<int> nonEmpty;
+
+  const vector<CNFClause>& clauses = cnf.clauses();
+
+  for (size_t i = 0; i < clauses.size(); i++)
+    if (!clauses[i].lits().empty())
+      nonEmpty.insert(i);
+
+  return nonEmpty;
+}
+
 vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
 {
   Graph graph = f1.conflictGraph().complement();
   CNFFormula cnf = f2.outputCNF();
   const vector<CNFClause>& clauses = cnf.clauses();
   const vector<int>& indicatorVars = f2.indicatorVars();
+  VarSet allIndicators(indicatorVars.begin(), indicatorVars.end());
+
+  vector<VarSet> implementation;
 
   MSSGenerator mssGen(clauses, indicatorVars);
   
-  vector<VarSet> implementation;
-
-  auto callback = [&indicatorVars, &mssGen, &implementation]
+  auto callback = [&indicatorVars, &mssGen, &implementation, &allIndicators, &graph]
     (const list<int>& clique)
     {
       VarSet mfs;
 
       for (int v : clique)
-	mfs.insert(indicatorVars[v]);
+      {
+	int i = graph.vertex(v);
+	mfs.insert(indicatorVars[i]);
+      }
+
+      //      cout << "MFS: ";
+      //      mfs.print();
       
       bool success;
 
@@ -230,8 +258,16 @@ vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
       {
 	VarSet mss = mssGen.getMSS();
 	implementation.push_back(mss);
-	mssGen.blockSubset(mss.vars());
+	VarSet complement = allIndicators.setDifference(mss);
+	mssGen.enforceAtLeastOne(complement.vars());
+
+	//	cout << "MSS: ";
+	//	mss.print();
+	//	cout << "Enforced: ";
+	//	complement.print();
       }
+
+      //      cout << (success ? "Success!" : "Failure!") << endl;
 
       return success;
     };
@@ -243,6 +279,90 @@ vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
   return implementation;
 }
 
+/*
+vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
+{
+  Graph graph = f1.conflictGraph().complement();
+  CNFFormula cnf = f2.outputCNF();
+  const vector<CNFClause>& clauses = cnf.clauses();
+  const vector<int>& indicatorVars = f2.indicatorVars();
+
+  vector<VarSet> implementation;
+
+  vector<set<int>> components =
+    cnf.dependencyGraph().connectedComponents();
+
+  for (const set<int>& component : components)
+  {
+    cout << "Connected component: { ";
+
+    for (int v : component)
+      cout << v << ", ";
+
+    cout << "}" << endl;
+
+    CNFFormula projectedCNF = cnf.projection(component);
+    set<int> subset = nonEmptyIndices(projectedCNF);
+    Graph conflictGraph = f1.conflictGraph().subgraph(subset).complement();
+    vector<CNFClause> projectedClauses;
+    vector<int> projectedIndicators;
+    VarSet allIndicators(projectedIndicators.begin(), projectedIndicators.end());
+
+    for (int i : subset)
+    {
+      projectedClauses.push_back(clauses[i]);
+      projectedIndicators.push_back(indicatorVars[i]);
+    }
+
+    MSSGenerator mssGen(projectedClauses, projectedIndicators);
+  
+    auto callback = [&indicatorVars, &mssGen, &implementation, &allIndicators, &conflictGraph]
+    (const list<int>& clique)
+    {
+      VarSet mfs;
+
+      for (int v : clique)
+      {
+	int i = conflictGraph.vertex(v);
+	mfs.insert(indicatorVars[i]);
+      }
+
+      cout << "MFS: ";
+      mfs.print();
+      
+      bool success;
+
+      if (mfs.subsetOfAny(implementation))
+	success = mssGen.generateMSS();
+      else
+	success = mssGen.generateMSSCovering(mfs.vars());
+
+      if (success)
+      {
+	VarSet mss = mssGen.getMSS();
+	implementation.push_back(mss);
+	VarSet complement = allIndicators.setDifference(mss);
+	mssGen.enforceAtLeastOne(complement.vars());
+
+	cout << "MSS: ";
+	mss.print();
+	cout << "Enforced: ";
+	complement.print();
+      }
+
+      cout << (success ? "Success!" : "Failure!") << endl;
+
+      return success;
+    };
+
+    MFSGenerator mfsGen(conflictGraph, callback);
+
+    mfsGen.run();
+  }
+
+  return implementation;
+}
+*/
 int main(int argc, char** argv)
 {
   if (argc < 2)
@@ -254,14 +374,34 @@ int main(int argc, char** argv)
     try
     {
       string inputPath(argv[1]);
-      //string graphPath(argv[2]);
-      //string cnfPath(argv[3]);
 
       CNFSpec f = loadDIMACS(inputPath);
 
       CNFChain cnfChain = cnfDecomp(f);
 
-      algorithm(cnfChain.first(), cnfChain.second());
+      //      cnfChain.first().print();
+      //      cnfChain.second().print();
+
+      auto start = system_clock::now();
+
+      vector<VarSet> implementation =
+	algorithm(cnfChain.first(), cnfChain.second());
+
+      auto t = duration_cast<milliseconds>(system_clock::now() - start);
+
+      cout << implementation.size() << " sets" << endl;
+      cout << t.count() << "ms" << endl;
+      /*
+      for (const VarSet& assignment : implementation)
+      {
+	cout << "{ ";
+	
+	for (int v : assignment.vars())
+	  cout << v << ", ";
+
+	cout << "}" << endl;
+      }
+      */
     }
     catch (const runtime_error& e)
     {
@@ -269,4 +409,3 @@ int main(int argc, char** argv)
     }
   }
 }
-

@@ -19,4 +19,6 @@ public:
 
   VarSet inputVars() const;
   VarSet outputVars() const;
+
+  void print() const;
 };
