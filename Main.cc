@@ -282,7 +282,6 @@ vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
 /*
 vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
 {
-  Graph graph = f1.conflictGraph().complement();
   CNFFormula cnf = f2.outputCNF();
   const vector<CNFClause>& clauses = cnf.clauses();
   const vector<int>& indicatorVars = f2.indicatorVars();
@@ -306,7 +305,6 @@ vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
     Graph conflictGraph = f1.conflictGraph().subgraph(subset).complement();
     vector<CNFClause> projectedClauses;
     vector<int> projectedIndicators;
-    VarSet allIndicators(projectedIndicators.begin(), projectedIndicators.end());
 
     for (int i : subset)
     {
@@ -316,7 +314,9 @@ vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
 
     MSSGenerator mssGen(projectedClauses, projectedIndicators);
   
-    auto callback = [&indicatorVars, &mssGen, &implementation, &allIndicators, &conflictGraph]
+    VarSet allIndicators(projectedIndicators.begin(), projectedIndicators.end());
+
+    auto callback = [&projectedIndicators, &mssGen, &implementation, &allIndicators, &conflictGraph]
     (const list<int>& clique)
     {
       VarSet mfs;
@@ -324,7 +324,7 @@ vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
       for (int v : clique)
       {
 	int i = conflictGraph.vertex(v);
-	mfs.insert(indicatorVars[i]);
+	mfs.insert(projectedIndicators[i]);
       }
 
       cout << "MFS: ";
@@ -379,8 +379,8 @@ int main(int argc, char** argv)
 
       CNFChain cnfChain = cnfDecomp(f);
 
-      //      cnfChain.first().print();
-      //      cnfChain.second().print();
+      //    cnfChain.first().print();
+      //    cnfChain.second().print();
 
       auto start = system_clock::now();
 
