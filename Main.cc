@@ -53,6 +53,8 @@ void skipComments(ifstream& in)
   }
 }
 
+
+
 pair<int, int> readHeader(ifstream& in)
 {
   string p, cnf; in >> p >> cnf;
@@ -69,6 +71,8 @@ pair<int, int> readHeader(ifstream& in)
 
   return make_pair(nVars, nClauses);
 }
+
+
 
 VarSet readQuantifiedSet(ifstream& in, const string& quantifier)
 {
@@ -97,6 +101,8 @@ VarSet readQuantifiedSet(ifstream& in, const string& quantifier)
   return vars;
 }
 
+
+
 CNFFormula readClauses(ifstream& in, int nClauses)
 {
   vector<CNFClause> clauses(nClauses);
@@ -118,6 +124,8 @@ CNFFormula readClauses(ifstream& in, int nClauses)
   return CNFFormula(clauses);
 }
 
+
+//Reads the input file and parses into a formula F in a specific format
 CNFSpec loadDIMACS(const string& path)
 {
   ifstream in(path);
@@ -137,6 +145,8 @@ CNFSpec loadDIMACS(const string& path)
   return CNFSpec(move(inputVars), move(outputVars), move(cnf));
 }
 
+
+//Decomposes the CNF formula into formulas F1,F2
 CNFChain cnfDecomp(const CNFSpec& spec)
 {
   const CNFFormula& cnf = spec.cnf();
@@ -174,6 +184,9 @@ CNFChain cnfDecomp(const CNFSpec& spec)
   return CNFChain(move(f1), move(f2));
 }
 
+
+
+
 void writeGraph(const Graph& graph, const string& path)
 {
   ofstream out(path);
@@ -189,6 +202,8 @@ void writeGraph(const Graph& graph, const string& path)
       if (adjacencyMatrix[i][j] == 1)
         out << i << "," << j << endl;
 }
+
+
 
 void writeCNF(const CNFFormula& cnf, const string& path)
 {
@@ -208,6 +223,8 @@ void writeCNF(const CNFFormula& cnf, const string& path)
   }
 }
 
+
+
 set<int> nonEmptyIndices(const CNFFormula& cnf)
 {
   set<int> nonEmpty;
@@ -221,48 +238,69 @@ set<int> nonEmptyIndices(const CNFFormula& cnf)
   return nonEmpty;
 }
 
+
+//This is the main algorithm!!!
+// Takes f1,f2, returns a list of sets which represents an assignment to both the z variables and the y variables. Description of the implementation
+// f1 is a formula from X to Z in a form of (z_i <-> \neg xi and x2 and x3) - (the x part is the negation of the x clause).
+// f2 is a formula from Z to Y in the form of z_i --> Cy where Cy is the Y clause.
+// *** This algorithm works fine!!! As far as Luacs (3/6/2018) could tell. The main problem is in the next method that uses initial Cy decomposition and is not working.
+
+
 vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
 {
-  Graph graph = f1.conflictGraph().complement();
-  CNFFormula cnf = f2.outputCNF();
-  const vector<CNFClause>& clauses = cnf.clauses();
-  const vector<int>& indicatorVars = f2.indicatorVars();
-  VarSet allIndicators(indicatorVars.begin(), indicatorVars.end());
-
-  vector<VarSet> implementation;
-
-  MSSGenerator mssGen(clauses, indicatorVars);
+    
+  Graph graph = f1.conflictGraph().complement(); // constructs the graph from f1, from which we extract the MIS. ConflictGraph() gives the MIS, complement() gives the cliques graph.
   
-  auto callback = [&indicatorVars, &mssGen, &implementation, &allIndicators, &graph]
-    (const list<int>& clique)
+  CNFFormula cnf = f2.outputCNF(); //Take the Y part of the formula f2 (later to be MSS'd)
+  const vector<CNFClause>& clauses = cnf.clauses(); 
+  
+  const vector<int>& indicatorVars = f2.indicatorVars(); //the z variables from f2 in a specific order (index i holds zi).
+  
+  VarSet allIndicators(indicatorVars.begin(), indicatorVars.end()); //  ?
+
+  vector<VarSet> implementation; // Creating the return object.
+
+  MSSGenerator mssGen(clauses, indicatorVars);//from this generator we will get the MSS.
+  
+  
+  
+  auto callback = [&indicatorVars, &mssGen, &implementation, &allIndicators, &graph]  //in [] is the objects that the callback function uses.
+    (const list<int>& clique) //called whenever a new clique is constructed in a form of a list of indices in the graph
     {
+        
       VarSet mfs;
 
-      for (int v : clique)
+      for (int v : clique)   //for every index in the maximal clique (the MFS) we are getting the z variable that corresponds to the specific vertex.
       {
-	int i = graph.vertex(v);
-	mfs.insert(indicatorVars[i]);
+	int i = graph.vertex(v);   //we get for what zi this vertex of the graph corresponds to.
+	mfs.insert(indicatorVars[i]);  //getting that zi, and inserting it to form the MFS.  So now we get the MFS with the indices of the origial formula.
       }
 
-      //      cout << "MFS: ";
-      //      mfs.print();
+            cout << "MFS: ";
+            mfs.print();
       
-      bool success;
+      bool success; //sucess - we managed to generate a new MSS  Otherwise we ran out of MSS.
 
-      if (mfs.subsetOfAny(implementation))
-	success = mssGen.generateMSS();
+      if (mfs.subsetOfAny(implementation))   //checks if this MFS that we obtained was covered before.
+	success = mssGen.generateMSS();  // If it was, we do not store it, but generate an MSS (just the next in line).
       else
-	success = mssGen.generateMSSCovering(mfs.vars());
+	success = mssGen.generateMSSCovering(mfs.vars());  // else we generate a specific MSS that covers the MFS.
 
-      if (success)
+      if (success) //we managed to generate a new MSS
       {
-	VarSet mss = mssGen.getMSS();
-	implementation.push_back(mss);
-	VarSet complement = allIndicators.setDifference(mss);
-	mssGen.enforceAtLeastOne(complement.vars());
+	VarSet mss = mssGen.getMSS(); //we got the MSS from the generator.
+	
+        implementation.push_back(mss); // We push the MSS to our list.
+        
+	VarSet complement = allIndicators.setDifference(mss); // We take the complement of the MSS. Since we need to add a new clause to the MSS generator to tell the generator not to generate the same MSS again or a subset of it.
+	
+        mssGen.enforceAtLeastOne(complement.vars()); //Adding a clause that says that at least one variable that is not in the previous MSS has to be in the new one. (otherwise we already contained in a previous one).
 
-	//	cout << "MSS: ";
-	//	mss.print();
+        // We do not deduce anything about the cliques from the MSS because such deduction is a non trivial problem.
+        
+        
+		cout << "MSS: ";
+		mss.print();
 	//	cout << "Enforced: ";
 	//	complement.print();
       }
@@ -270,14 +308,20 @@ vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
       //      cout << (success ? "Success!" : "Failure!") << endl;
 
       return success;
-    };
+      
+    }; //end callback function.
 
-  MFSGenerator mfsGen(graph, callback);
+    
+    
+    
+  MFSGenerator mfsGen(graph, callback); //We initialize an MFS generator that uses the graphs and the callback.
 
-  mfsGen.run();
+  mfsGen.run(); //running the generator
 
   return implementation;
 }
+
+
 
 /*
 vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
@@ -363,7 +407,7 @@ vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
   return implementation;
 }
 */
-int main(int argc, char** argv)
+int main(int argc, char** argv) //receives the path to the input file.
 {
   if (argc < 2)
   {
@@ -373,17 +417,21 @@ int main(int argc, char** argv)
   {
     try
     {
-      string inputPath(argv[1]);
+       //Reads input 
+      string inputPath(argv[1]);  
 
+      //Parses the file into CNF specification
       CNFSpec f = loadDIMACS(inputPath);
 
+      //Takes specification splits to F1,F2 - in a form of formulas
       CNFChain cnfChain = cnfDecomp(f);
 
-      //    cnfChain.first().print();
-      //    cnfChain.second().print();
+          cnfChain.first().print();
+          cnfChain.second().print();
 
       auto start = system_clock::now();
 
+      //Calls the algorithm(F1,F2)
       vector<VarSet> implementation =
 	algorithm(cnfChain.first(), cnfChain.second());
 
