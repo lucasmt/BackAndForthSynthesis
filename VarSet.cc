@@ -61,7 +61,7 @@ void VarSet::print() const
 
   for (int var : _vars)
   {
-    cout << var << ", ";
+    cout << "z" <<  var << ", ";
   }
 
   cout << "}" << endl;

@@ -38,10 +38,15 @@ void MSSSpec::print() const
 
   for (size_t i = 0; i < _indicatorVars.size(); i++)
   {
-    cout << _indicatorVars[i] << " -> ";
+    cout << "z" << _indicatorVars[i] << " -> ";
 
     for (int lit : clauses[i].lits())
-      cout << lit << " ";
+    {
+      if (lit < 0)
+	cout << "~y" << (-lit) << " \\/ ";
+      else
+	cout << "y" << lit << " \\/ ";
+    }
 
     cout << endl;
   }

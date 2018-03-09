@@ -9,6 +9,11 @@ using NSPACE::IntRange;
 using NSPACE::IntOption;
 using NSPACE::BoolOption;
 
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
 MSSGenerator::MSSGenerator(const vector<CNFClause>& clauses,
 			   const vector<int>& indicators)
   : solver(IntOption("Open-WBO", "verbosity",
@@ -54,6 +59,15 @@ void MSSGenerator::addSoftClause(uint64_t weight,
   formula->setMaximumWeight(weight);
   formula->updateSumWeights(weight);
   formula->addSoftClause(weight, lits);
+
+  cout << "Soft clause (weight " << weight << "): ";
+
+  for (int l : clause.lits())
+  {
+    cout << l << ", ";
+  }
+
+  cout << endl;
 }
 
 void MSSGenerator::addHardClause(const CNFClause& clause,
@@ -72,6 +86,16 @@ void MSSGenerator::addHardClause(const CNFClause& clause,
   }
 
   formula->addHardClause(lits);
+
+  cout << "Hard clause (weight " << formula->getHardWeight() << "): ";
+
+  for (int l : clause.lits())
+  {
+    cout << l << ", ";
+  }
+
+  cout << endl;
+
 }
 
 void MSSGenerator::addHardClauseWithIndicator(const CNFClause& clause,
@@ -93,6 +117,16 @@ void MSSGenerator::addHardClauseWithIndicator(const CNFClause& clause,
   lits.push(~mkLit(indicator));
 
   formula->addHardClause(lits);
+
+  cout << "Hard clause (weight " << formula->getHardWeight() << "): " << -indicator << ", ";
+
+  for (int l : clause.lits())
+  {
+    cout << l << ", ";
+  }
+
+  cout << endl;
+
 }
 
 void MSSGenerator::enforceAtLeastOne(const set<int>& vars)
@@ -103,6 +137,15 @@ void MSSGenerator::enforceAtLeastOne(const set<int>& vars)
     lits.push(mkLit(var));
 
   maxSatFormula.addHardClause(lits);
+
+  cout << "Hard clause (weight " << maxSatFormula.getHardWeight() << "): ";
+
+  for (int var : vars)
+  {
+    cout << var << ", ";
+  }
+
+  cout << endl;
 }
 
 bool MSSGenerator::generateMSS()

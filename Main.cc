@@ -238,6 +238,33 @@ set<int> nonEmptyIndices(const CNFFormula& cnf)
   return nonEmpty;
 }
 
+void printMFS(const VarSet& mfs)
+{
+  cout << "MFS: ";
+
+  mfs.print();
+}
+
+void printMSS(const VarSet& mss, const VarSet& outputSet)
+{
+  cout << "MSS: ";
+
+  VarSet indicatorSet = mss.setDifference(outputSet);
+
+  indicatorSet.print();
+  
+  cout << "Satisfying assignment: {";
+  
+  const set<int>& mssVars = mss.vars();
+  const set<int>& outputVars = outputSet.vars();
+
+  for (int var : outputVars)
+  {
+    cout << "y" << var << ": " << (mssVars.find(var) != mssVars.end()) << ", ";
+  }
+
+  cout << "}" << endl;
+}
 
 //This is the main algorithm!!!
 // Takes f1,f2, returns a list of sets which represents an assignment to both the z variables and the y variables. Description of the implementation
@@ -264,7 +291,7 @@ vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
   
   
   
-  auto callback = [&indicatorVars, &mssGen, &implementation, &allIndicators, &graph]  //in [] is the objects that the callback function uses.
+  auto callback = [&indicatorVars, &mssGen, &implementation, &allIndicators, &graph, &f2]  //in [] is the objects that the callback function uses.
     (const list<int>& clique) //called whenever a new clique is constructed in a form of a list of indices in the graph
     {
         
@@ -276,8 +303,7 @@ vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
 	mfs.insert(indicatorVars[i]);  //getting that zi, and inserting it to form the MFS.  So now we get the MFS with the indices of the origial formula.
       }
 
-            cout << "MFS: ";
-            mfs.print();
+      printMFS(mfs);
       
       bool success; //sucess - we managed to generate a new MSS  Otherwise we ran out of MSS.
 
@@ -299,8 +325,7 @@ vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
         // We do not deduce anything about the cliques from the MSS because such deduction is a non trivial problem.
         
         
-		cout << "MSS: ";
-		mss.print();
+	printMSS(mss, f2.outputVars());
 	//	cout << "Enforced: ";
 	//	complement.print();
       }
@@ -426,8 +451,13 @@ int main(int argc, char** argv) //receives the path to the input file.
       //Takes specification splits to F1,F2 - in a form of formulas
       CNFChain cnfChain = cnfDecomp(f);
 
-          cnfChain.first().print();
-          cnfChain.second().print();
+      cout << "F1:" << endl;
+      cnfChain.first().print();
+      cout << endl;
+
+      cout << "F2:" << endl;
+      cnfChain.second().print();
+      cout << endl;
 
       auto start = system_clock::now();
 

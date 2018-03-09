@@ -75,10 +75,15 @@ void TrivialSpec::print() const
 {
   for (size_t i = 0; i < _def.size(); i++)
   {
-    cout << _outputVars[i] << " <-> ";
+    cout << "z" << _outputVars[i] << " <-> ";
 
     for (int lit : _def[i])
-      cout << lit << " ";
+    {
+      if (lit < 0)
+	cout << "~x" << (-lit) << " /\\ ";
+      else
+	cout << "x" << lit << " /\\ ";
+    }
 
     cout << endl;
   }
