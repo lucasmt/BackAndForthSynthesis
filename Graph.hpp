@@ -1,37 +1,48 @@
 #pragma once
 
-#include <vector>
-#include <set>
-#include <unordered_map>
+#include "Vector.hpp"
+#include "Map.hpp"
+#include "Set.hpp"
 
+/**
+ * Unweighted graph over vertex set of type V.
+ */
+template <class V>
 class Graph
 {
-  int _size;
-  std::vector<int> _vertices;
-  std::unordered_map<int, int> _indices;
-  std::vector<std::vector<int>> _adjacencyMatrix;
+  Vector<V> _vertices; /**< vertices of the graph */
+  Map<V, size_t> _indices; /**< _indices[v] = i <-> _vertices[i] = v */
+  Vector<Vector<size_t>> _adjacencyList; /**< _adjacencyList[i] contains the indices of the neighbors of _vertices[i] */
 
 public:
 
-  Graph(int size);
-  Graph (const std::set<int>& vertices);
-  Graph (const std::vector<int>& vertices);
+  Graph (const Set<int>& vertices); /**< constructs a graph with the given vertex set and no edges */
+  Graph (const Vector<int>& vertices); /**< same as above */
 
-  int size() const;
-  
-  int nEdges() const;
+  size_t size() const; /**< number of vertices in the graph */
+  size_t edgeCount() const; /**< number of edges in the graph */
 
-  int vertex(int i) const;
+  V vertexByIndex(size_t i) const; /**< returns vertex corresponding to the given index */
 
-  void addEdge(int from, int to);
+  void addEdge(V from, V to); /**< adds and edge between the given vertices */
+  Vector<Pair<V, V>> edges() const; /**< returns a list of all edges in the graph */
 
-  Graph complement() const;
+  /**
+   * Returns a graph where:
+   * - The vertex set is the same as the original graph;
+   * - There is an edge between two different vertices iff there was no such edge in the original graph;
+   * - There are no self-loops.
+   */
+  Graph<V> complement() const;
 
-  const std::vector<std::vector<int>>& adjacencyMatrix() const;
+  /**
+   * Returns a graph over the given vertex set where:
+   * - There is an edge between two vertices iff there was such an edge in the original graph.
+   */
+  Graph<V> subgraph(const Set<V>& vertices) const;
 
-  void print() const;
-
-  Graph subgraph(const std::set<int>& vertices) const;
-
-  std::vector<std::set<int>> connectedComponents() const;
+  /**
+   * Returns a list of all connected components of the graph (each given as a set of vertices).
+   */
+  Vector<Set<V>> connectedComponents() const;
 };
