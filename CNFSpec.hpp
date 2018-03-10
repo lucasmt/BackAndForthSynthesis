@@ -1,20 +1,17 @@
 #pragma once
 
 #include "CNFFormula.hpp"
-#include "VarSet.hpp"
+#include "Set.hpp"
+#include "Ref.hpp"
 
-class CNFSpec
+/**
+ * CNF specification composed of:
+ * - CNF formula;
+ * - Partition of the set of variables into input and output.
+ */
+struct CNFSpec
 {
-  VarSet _inputVars;
-  VarSet _outputVars;
-  CNFFormula _cnf;
-
-  public:
-
-  CNFSpec(VarSet inputVars, VarSet outputVars, CNFFormula cnf);
-
-  const CNFFormula& cnf() const;
-
-  const VarSet& inputVars() const;
-  const VarSet& outputVars() const;
+  const Ref<Set<Var>> inputVars;
+  const Ref<Set<Var>> outputVars;
+  const Ref<CNFFormula> cnf;
 };
