@@ -1,27 +1,28 @@
 #pragma once
 
-#include <map>
-#include <vector>
-
+#include "CNFFormula.hpp"
 #include "Graph.hpp"
-#include "VarSet.hpp"
+#include "Vector.hpp"
+#include "Set.hpp"
+#include "Ref.hpp"
 
+/**
+ * Second component of the CNF decomposition:
+ * (z_1 <-> ~X_1) /\ (z_2 <-> ~X_2) /\ ... /\ (z_n <-> ~X_n)
+ */
 class TrivialSpec
 {
-  VarSet _inputVars;
-  std::vector<int> _outputVars;
-  std::vector<std::vector<int>> _def;
+  Ref<Vector<Var>> _defined; /**< z_1, z_2, ..., z_n */
+  Ref<Vector<CNFClause>> _negDefinitions; /**< X_1, X_2, ..., X_n */
   
 public:
   
-  TrivialSpec(const std::map<int,std::vector<int>>& def);
+  TrivialSpec(Ref<Vector<Var>> defined, Ref<Vector<CNFClause>> negDefinition);
 
-  const std::vector<std::vector<int>>& def() const;
-
-  VarSet inputVars() const;
-  VarSet outputVars() const;
-
-  Graph conflictGraph() const;
-
-  void print() const;
+  /**
+   * Returns graph where:
+   * - Vertex i represents clause X_i;
+   * - There is an edge between two vertices iff the clauses have opposite literals.
+   */
+  Graph<size_t> conflictGraph() const;
 };
