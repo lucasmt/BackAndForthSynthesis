@@ -1,10 +1,14 @@
 #include "Graph.hpp"
 
 #include <stack>
+#include <numeric>
 
 using std::stack;
+using std::tuple;
+using std::iota;
 
-Graph::Graph(const Set<T>& vertices)
+template<class V>
+Graph<V>::Graph(const Set<V>& vertices)
   : _vertices(vertices.begin(), vertices.end()),
     _adjacencyList(vertices.size()),
     _edgeCount(0)
@@ -15,7 +19,8 @@ Graph::Graph(const Set<T>& vertices)
   }
 }
 
-Graph::Graph(const Vector<T>& vertices)
+template<class V>
+Graph<V>::Graph(const Vector<V>& vertices)
   : _vertices(vertices.begin(), vertices.end()),
     _adjacencyList(vertices.size()),
     _edgeCount(0)
@@ -26,22 +31,26 @@ Graph::Graph(const Vector<T>& vertices)
   }
 }
 
-size_t Graph::size() const
+template<class V>
+size_t Graph<V>::size() const
 {
   return _vertices.size();
 }
 
-size_t Graph::edgeCount() const
+template<class V>
+size_t Graph<V>::edgeCount() const
 {
   return _edgeCount;
 }
 
-size_t Graph::vertexByIndex(size_t i) const
+template<class V>
+V Graph<V>::vertexByIndex(size_t i) const
 {
   return _vertices[i];
 }
 
-void Graph::addEdge(V from, V to)
+template<class V>
+void Graph<V>::addEdge(V from, V to)
 {
   size_t i = _indices.at(from);
   size_t j = _indices.at(to);
@@ -50,7 +59,20 @@ void Graph::addEdge(V from, V to)
   _edgeCount++;
 }
 
-Graph<V> Graph::complement() const
+template<class V>
+Vector<tuple<V, V>> Graph<V>::edges() const
+{
+  Vector<tuple<V, V>> edges;
+
+  for (size_t i = 0; i < _vertices.size(); i++)
+    for (size_t j : _adjacencyList[i])
+      edges.emplace_back(_vertices[i], _vertices[j]);
+
+  return edges;
+}
+
+template<class V>
+Graph<V> Graph<V>::complement() const
 {
   size_t n = _vertices.size();
   Graph<V> complement(_vertices);
@@ -71,10 +93,11 @@ Graph<V> Graph::complement() const
   return complement;
 }
 
-Vector<Vector<int>> Graph::adjacencyMatrix() const
+template<class V>
+Vector<Vector<size_t>> Graph<V>::adjacencyMatrix() const
 {
   size_t n = _vertices.size();
-  Vector<Vector<int>> adjacencyMatrix(n, Vector<int>(n, 0));
+  Vector<Vector<size_t>> adjacencyMatrix(n, Vector<int>(n, 0));
 
   for (size_t i = 0; i < n; i++)
     for (size_t j : _adjacencyList[i])
@@ -83,7 +106,8 @@ Vector<Vector<int>> Graph::adjacencyMatrix() const
   return adjacencyMatrix;
 }
 
-Graph<V> Graph::subgraph(const Set<V>& vertices) const
+template<class V>
+Graph<V> Graph<V>::subgraph(const Set<V>& vertices) const
 {
   Graph<V> subgraph(vertices);
 
@@ -105,7 +129,8 @@ Graph<V> Graph::subgraph(const Set<V>& vertices) const
   return subgraph;
 }
 
-Vector<Set<V>> Graph::connectedComponents() const
+template<class V>
+Vector<Set<V>> Graph<V>::connectedComponents() const
 {
   size_t n = _vertices.size();
   Vector<Set<V>> components;
@@ -121,7 +146,8 @@ Vector<Set<V>> Graph::connectedComponents() const
     stack<size_t> toVisit; /*< indices that should be visited next */
 
     /* Start with first index that has not been added to a component yet */
-    size_t head = *allIndices.begin();
+    auto it = allIndices.begin();
+    size_t head = *it;
     toVisit.push(head);
     componentIndices.insert(head);
     allIndices.erase(it);
@@ -135,12 +161,12 @@ Vector<Set<V>> Graph::connectedComponents() const
       /* Add every neighbor that has not been visited yet to the stack */
       for (size_t j : _adjacencyList[i])
       {
-	auto it = newIndices.find(j);
+	auto it = componentIndices.find(j);
 
-	if (it == newVertices.end())
+	if (it == componentIndices.end())
 	{
 	  toVisit.push(j);
-	  newIndices.insert(it, j);
+	  componentIndices.insert(it, j);
 	  allIndices.erase(j);
 	}
       }
@@ -150,7 +176,7 @@ Vector<Set<V>> Graph::connectedComponents() const
     /* Construct a connected component from the indices */
     Set<V> component;
 
-    for (size_t i : newIndices)
+    for (size_t i : componentIndices)
       component.insert(_vertices[i]);
 
     components.push_back(component);

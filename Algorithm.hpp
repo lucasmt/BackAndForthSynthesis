@@ -1,14 +1,19 @@
+#include "Set.hpp"
+#include "Vector.hpp"
+#include "CNFFormula.hpp"
+#include "MFSGenerator.hpp"
+#include "MSSGenerator.hpp"
+
+#include <list>
 
 using std::list;
-using std::chrono::system_clock;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
 
-set<int> nonEmptyIndices(const CNFFormula& cnf)
+/*
+Set<size_t> nonEmptyIndices(const CNFFormula& cnf)
 {
-  set<int> nonEmpty;
+  Set<size_t> nonEmpty;
   
-  const vector<CNFClause>& clauses = cnf.clauses();
+  const Vector<CNFClause>& clauses = cnf.clauses();
 
   for (size_t i = 0; i < clauses.size(); i++)
     if (!clauses[i].lits().empty())
@@ -16,34 +21,7 @@ set<int> nonEmptyIndices(const CNFFormula& cnf)
 
   return nonEmpty;
 }
-
-void printMFS(const VarSet& mfs)
-{
-  cout << "MFS: ";
-
-  mfs.print();
-}
-
-void printMSS(const VarSet& mss, const VarSet& outputSet)
-{
-  cout << "MSS: ";
-
-  VarSet indicatorSet = mss.setDifference(outputSet);
-
-  indicatorSet.print();
-  
-  cout << "Satisfying assignment: {";
-  
-  const set<int>& mssVars = mss.vars();
-  const set<int>& outputVars = outputSet.vars();
-
-  for (int var : outputVars)
-  {
-    cout << "y" << var << ": " << (mssVars.find(var) != mssVars.end()) << ", ";
-  }
-
-  cout << "}" << endl;
-}
+*/
 
 //This is the main algorithm!!!
 // Takes f1,f2, returns a list of sets which represents an assignment to both the z variables and the y variables. Description of the implementation
@@ -52,46 +30,47 @@ void printMSS(const VarSet& mss, const VarSet& outputSet)
 // *** This algorithm works fine!!! As far as Luacs (3/6/2018) could tell. The main problem is in the next method that uses initial Cy decomposition and is not working.
 
 
-Vector<Set<Var>> backAndForthAlgorithm(const TrivialSpec& f1, const MSSSpec& f2)
+Vector<Set<BVar>> backAndForthAlgorithm(const TrivialSpec& f1, const MSSSpec& f2)
 {
   /* Graph where every maximal clique corresponds to an MFS of F1 */
   Graph<size_t> cliquesGraph = f1.conflictGraph().complement();
 
-  const Vector<Var>& indicatorVars = f2.indicatorVars();
+  const Vector<BVar>& indicatorVars = f2.indicatorVars();
   const Vector<CNFClause>& outputClauses = f2.outputClauses();
 
   /* Set of all indicator variables */
-  Set<Var> allIndicatorVars(indicatorVars);
+  Set<BVar> allIndicatorVars(indicatorVars.begin(), indicatorVars.end());
 
   /* Initialize MSS generator */
   MSSGenerator mssGen(indicatorVars, outputClauses);
     
   /* MSS will be stored here */
-  Vector<Set<Var>> mssList;
+  Vector<Set<BVar>> mssList;
 
   /* Function to be called whenever a new maximal clique is found */
   auto callback = [&] (const list<int>& maxClique)
     {
       /* Construct MFS corresponding to maximal clique, as a set of indicator variables */
-      Set<Var> mfs;
+      Set<BVar> mfs;
 
       for (int vertexIndex : maxClique)
       {
-	size_t indicatorVarIndex = graph.vertexByIndex(vertexIndex); /*< get graph vertex corresponding to index in the clique */
-	Var indicatorVar = indicatorVars[indicatorVarIndex]; /*< get variable id corresponding to graph vertex */
+	size_t indicatorVarIndex = cliquesGraph.vertexByIndex(vertexIndex); /*< get graph vertex corresponding to index in the clique */
+	BVar indicatorVar = indicatorVars[indicatorVarIndex]; /*< get variable id corresponding to graph vertex */
 	mfs.insert(indicatorVar);
       }
 
       /* Will be an MSS, or nothing if there are no MSS left to generate */
-      optional<Set<Var>> mss;
+      Optional<Set<BVar>> mss;
 
       /* Checks if MFS is a subset of one of the previous MSS */
-      bool mfsAlreadyCovered = any_of(mssList.begin(), mssList.end(), mfs.subsetOf);
+      auto isSuperset = [&mfs] (const Set<BVar>& mss) { return isSubset(mfs, mss); };
+      bool mfsAlreadyCovered = any_of(mssList.begin(), mssList.end(), isSuperset);
 
       if (mfsAlreadyCovered)
-	potentialMSS = mssGen.generateMSS(); /*< discard MFS and just generate a new MSS */
+	mss = mssGen.generateMSS(); /*< discard MFS and just generate a new MSS */
       else
-	potentialMSS = mssGen.generateMSSCovering(mfs); /*< generate a new MSS covering the MFS */
+	mss = mssGen.generateMSSCovering(mfs); /*< generate a new MSS covering the MFS */
 
       if (!mss)
 	return false; /*< if we've run out of MSS, stop generating maximal cliques */
@@ -100,19 +79,19 @@ Vector<Set<Var>> backAndForthAlgorithm(const TrivialSpec& f1, const MSSSpec& f2)
 	mssList.push_back(*mss);
 	
 	/* Enforce that future MSS should not be subsets of this MSS */
-	Set<Var> notInMSS = allIndicatorVars.setDifference(mss);
+	Set<BVar> notInMSS = setDifference(allIndicatorVars, *mss);
 	CNFClause atLeastOneNew = CNFClause::atLeastOne(notInMSS);
-	mssGen.addHardClause(atLeastOneNew);
+	mssGen.enforceClause(atLeastOneNew);
 
 	return true; /*< continue searching for maximal cliques */
       }
     }; /* end of callback */
 
   /* Initialize maximal-clique generator */
-  MFSGenerator maxCliqueGen(cliquesGraph, callback);
+  MFSGenerator mfsGen(cliquesGraph, callback);
 
-  /* Run maximal-clique generator; callback will be called whenever a new maximal clique is found */
-  maxCliqueGen.run();
+  /* Run MFS generator; callback will be called whenever a new maximal clique is found */
+  mfsGen.run();
 
   return mssList;
 }
@@ -201,58 +180,4 @@ vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
   return implementation;
 }
 */
-int main(int argc, char** argv) //receives the path to the input file.
-{
-  if (argc < 2)
-  {
-    cout << "Expected format: decomp <input-file>" << endl;
-  }
-  else
-  {
-    try
-    {
-       //Reads input 
-      string inputPath(argv[1]);  
 
-      //Parses the file into CNF specification
-      CNFSpec f = loadDIMACS(inputPath);
-
-      //Takes specification splits to F1,F2 - in a form of formulas
-      CNFChain cnfChain = cnfDecomp(f);
-
-      cout << "F1:" << endl;
-      cnfChain.first().print();
-      cout << endl;
-
-      cout << "F2:" << endl;
-      cnfChain.second().print();
-      cout << endl;
-
-      auto start = system_clock::now();
-
-      //Calls the algorithm(F1,F2)
-      vector<VarSet> implementation =
-	algorithm(cnfChain.first(), cnfChain.second());
-
-      auto t = duration_cast<milliseconds>(system_clock::now() - start);
-
-      cout << implementation.size() << " sets" << endl;
-      cout << t.count() << "ms" << endl;
-      /*
-      for (const VarSet& assignment : implementation)
-      {
-	cout << "{ ";
-	
-	for (int v : assignment.vars())
-	  cout << v << ", ";
-
-	cout << "}" << endl;
-      }
-      */
-    }
-    catch (const runtime_error& e)
-    {
-      cout << e.what() << endl;
-    }
-  }
-}

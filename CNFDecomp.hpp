@@ -1,33 +1,40 @@
 #include "CNFChain.hpp"
 
+#include <algorithm>
+
+using std::max;
+
 /**
  * Decomposes a CNF specification into (F_1, F_2) according to the CNF decomposition.
  */
 CNFChain cnfDecomp(const CNFSpec& spec)
 {
-  /* Find variable with maximum id */
-  Var lastVar = max(inputVars.max(), outputVars.max());
+  const Set<BVar>& inputVars = spec.inputVars();
+  const Set<BVar>& outputVars = spec.outputVars();
 
-  Vector<Var> indicatorVars; /*< z_1, z_2, ..., z_n */
+  /* Find variable with maximum id */
+  BVar lastVar = max(maxElement(inputVars), maxElement(outputVars));
+
+  Vector<BVar> indicatorVars; /*< z_1, z_2, ..., z_n */
   Vector<CNFClause> inputClauses; /*< X_1, X_2, ..., X_n */
   CNFFormula outputCNF; /*< Y_1 /\ Y_2 /\ ... /\ Y_n */
 
   for (const CNFClause& clause : spec.cnf())
   {
     /* Add new z_i */
-    indicatorVariables.push_back(lastVar + 1);
     lastVar++;
+    indicatorVars.push_back(lastVar);
 
     /* Split clause into input and output parts */
     CNFClause inputClause, outputClause;
 
-    for (Lit lit : clause)
+    for (BLit lit : clause)
     {
-      Var var = abs(lit); /*< remove sign of literal to get the variable */
+      BVar var = abs(lit); /*< remove sign of literal to get the variable */
 
-      if (spec.isInput(var))
+      if (inputVars.find(var) != inputVars.end()) /*< var is an input variable */
 	inputClause |= lit;
-      else
+      else /*< var is an output variable */
 	outputClause |= lit;
     }
 

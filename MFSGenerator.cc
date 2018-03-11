@@ -1,17 +1,13 @@
 #include "MFSGenerator.hpp"
 #include "quick-cliques/src/TomitaAlgorithm.h"
 
-#include <algorithm>
-
 using std::function;
 using std::list;
-using std::vector;
-using std::max;
 
-MFSGenerator::MFSGenerator(const Graph& graph,
+MFSGenerator::MFSGenerator(const Graph<size_t>& graph,
 			   function<bool(const list<int>&)> callback)
 {
-  const vector<vector<int>>& vAdjacencyMatrix = graph.adjacencyMatrix();
+  Vector<Vector<size_t>> vAdjacencyMatrix = graph.adjacencyMatrix();
   n = graph.size();
 
   adjacencyMatrix = (char**)calloc(n, sizeof(char*));

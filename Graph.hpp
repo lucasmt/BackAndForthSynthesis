@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tuple>
+
 #include "Vector.hpp"
 #include "Map.hpp"
 #include "Set.hpp"
@@ -17,8 +19,8 @@ class Graph
 
 public:
 
-  Graph(const Set<T>& vertices); /**< constructs a graph with the given vertex set and no edges */
-  Graph(const Vector<T>& vertices); /**< same as above */
+  Graph(const Set<V>& vertices); /**< constructs a graph with the given vertex set and no edges */
+  Graph(const Vector<V>& vertices); /**< same as above */
 
   size_t size() const; /**< number of vertices in the graph */
   size_t edgeCount() const; /**< number of edges in the graph */
@@ -26,7 +28,7 @@ public:
   V vertexByIndex(size_t i) const; /**< returns vertex corresponding to the given index */
 
   void addEdge(V from, V to); /**< adds and edge between the given vertices */
-  Vector<Pair<V, V>> edges() const; /**< returns a list of all edges in the graph */
+  Vector<std::tuple<V, V>> edges() const; /**< returns a list of all edges in the graph */
 
   /**
    * Returns a graph where:

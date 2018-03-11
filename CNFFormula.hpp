@@ -6,39 +6,40 @@
 
 /**
  * Type aliases for representing CNF variables and literals.
- * A Var should always be positive.
- * A Lit can be either positive or negative.
+ * A BVar should always be positive.
+ * A BLit can be either positive or negative.
  */
-using Var = int;
-using Lit = int;
+using BVar = int;
+using BLit = int;
 
 /**
  * Clause in a CNF formula: (l_1 \/ l_2 \/ ... \/ l_k).
  */
 class CNFClause
 {
-  Vector<Lit> _lits; /**< list of literals in the clause */
+  Vector<BLit> _lits; /**< list of literals in the clause */
 
 public:
 
   CNFClause(); /**< construct a clause with no literals (equivalent to false) */
-  CNFClause(Lit l); /**< construct a clause with a single literal */
-  CNFClause(Lit l1, Lit l2); /**< construct a clause with two literals */
+  CNFClause(BLit l); /**< construct a clause with a single literal */
+  CNFClause(BLit l1, BLit l2); /**< construct a clause with two literals */
 
-  CNFClause& operator|=(Lit lit); /**< add a new literal to the clause */
+  CNFClause& operator|=(BLit lit); /**< add a new literal to the clause */
   CNFClause& operator|=(const CNFClause& other); /**< add all literals in other clause to this clause */
   CNFClause operator|(const CNFClause& other) const; /**< create a new clause from the OR of two clauses */
 
-  CNFClause projection(const Set<Var>& vars) const; /**< remove from clause all variables not in the set */
+  static CNFClause atLeastOne(const Set<BVar>& vars);
 
-  /** Iterator definitions */
-  using Vector<Lit>::iterator = iterator;
-  using Vector<Lit>::const_iterator = const_iterator;
+  CNFClause projection(const Set<BVar>& vars) const; /**< remove from clause all variables not in the set */
 
-  inline iterator begin() noexcept { return vec.begin(); }
-  inline const_iterator cbegin() const noexcept { return vec.cbegin(); }
-  inline iterator end() noexcept { return vec.end(); }
-  inline const_iterator cend() const noexcept { return vec.end(); }
+  /** Iterators */
+
+  using iterator = Vector<BLit>::iterator;
+  using const_iterator = Vector<BLit>::const_iterator;
+
+  inline const_iterator begin() const noexcept { return _lits.cbegin(); }
+  inline const_iterator end() const noexcept { return _lits.cend(); }
 };
 
 /**
@@ -57,9 +58,11 @@ public:
   CNFFormula operator&(const CNFFormula& other) const; /**< create a new formula from the AND of two formulas */
 
   CNFClause& operator[](size_t i); /**< access clause by index */
-  const CNFClause& operator[](size_t i) const; /** read-only access */
+  const CNFClause& operator[](size_t i) const; /**< read-only access */
 
-  CNFFormula projection(const Set<Var>& vars) const; /**< remove from every clause the variables that are not in the set */
+  const Vector<CNFClause>& clauses() const;
+
+  CNFFormula projection(const Set<BVar>& vars) const; /**< remove from every clause the variables that are not in the set */
 
   /**
    * Returns graph where:
@@ -68,12 +71,11 @@ public:
    */
   Graph<size_t> dependencyGraph() const;
 
-  /** Iterator definitions */
-  using Vector<CNFClause>::iterator = iterator;
-  using Vector<CNFClause>::const_iterator = const_iterator;
+  /** Iterators */
 
-  inline iterator begin() noexcept { return vec.begin(); }
-  inline const_iterator cbegin() const noexcept { return vec.cbegin(); }
-  inline iterator end() noexcept { return vec.end(); }
-  inline const_iterator cend() const noexcept { return vec.end(); }
+  using iterator = Vector<CNFClause>::iterator;
+  using const_iterator = Vector<CNFClause>::const_iterator;
+
+  inline const_iterator begin() const noexcept { return _clauses.cbegin(); }
+  inline const_iterator end() const noexcept { return _clauses.cend(); }
 };

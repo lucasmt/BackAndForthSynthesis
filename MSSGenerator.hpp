@@ -1,37 +1,28 @@
 #pragma once
 
 #include "CNFFormula.hpp"
+#include "Set.hpp"
+#include "Vector.hpp"
+#include "Optional.hpp"
 #include "open-wbo/MaxSATFormula.h"
 #include "open-wbo/algorithms/Alg_WBO.h"
-#include <vector>
-#include <set>
 
+/**
+ * Class that generates Maximal Satisfiable Subsets using a MaxSAT solver.
+ */
 class MSSGenerator
 {
-  openwbo::MaxSATFormula maxSatFormula;
-  openwbo::WBO solver;
-
-  void addSoftClause(uint64_t weight,
-		     const CNFClause& clause,
-		     openwbo::MaxSATFormula* formula);
-
-  void addHardClause(const CNFClause& clause,
-		     openwbo::MaxSATFormula* formula);
-
-  void addHardClauseWithIndicator(const CNFClause& clause,
-				  int indicator,
-				  openwbo::MaxSATFormula* formula);
+  openwbo::MaxSATFormula maxSatFormula; /**< formula encoding the constraints for the problem */
+  openwbo::WBO maxSatSolver; /**< MaxSAT solver used for generating the MSS */
 
 public:
 
-  MSSGenerator(const std::vector<CNFClause>& clauses,
-	       const std::vector<int>& indicators);
+  MSSGenerator(const Vector<BVar>& indicators,
+	       const Vector<CNFClause>& clauses);
 
-  void enforceAtLeastOne(const std::set<int>& vars);
+  void enforceClause(const CNFClause& clause);
 
-  bool generateMSS();
+  Optional<Set<BVar>> generateMSS();
 
-  bool generateMSSCovering(const std::set<int>& vars);
-
-  VarSet getMSS() const;
+  Optional<Set<BVar>> generateMSSCovering(const Set<BVar>& vars);
 };

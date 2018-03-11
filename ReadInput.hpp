@@ -55,7 +55,7 @@ tuple<int, int> readHeader(ifstream& in)
 /**
  * Reads list of quantified variables from the input string.
  */
-Set<Var> readQuantifiedVars(ifstream& in, const string& quantifier)
+Set<BVar> readQuantifiedVars(ifstream& in, const string& quantifier)
 {
   string q;
   in >> q;
@@ -67,9 +67,9 @@ Set<Var> readQuantifiedVars(ifstream& in, const string& quantifier)
 			  quantifier + "\", got \"" + q + "\"");
   }
 
-  Set<Var> vars;
+  Set<BVar> vars;
   
-  Var v;
+  BVar v;
   in >> v;
 
   /* Read variables until the 0 delimiter */
@@ -99,7 +99,7 @@ CNFFormula readClauses(ifstream& in, size_t clauseCount)
   {
     CNFClause clause;
 
-    Lit lit;
+    BLit lit;
     in >> lit;
 
     /* Read literals until the 0 delimiter */
@@ -136,8 +136,8 @@ CNFSpec loadDIMACS(const string& path)
 
   size_t clauseCount = get<1>(readHeader(in)); /**< get only the number of clauses */
 
-  Set<Var> inputVars = readQuantifiedVars(in, "a"); /**< read list of universal variables */ 
-  Set<Var> outputVars = readQuantifiedVars(in, "e"); /**< read list of existential variables */
+  Set<BVar> inputVars = readQuantifiedVars(in, "a"); /**< read list of universal variables */ 
+  Set<BVar> outputVars = readQuantifiedVars(in, "e"); /**< read list of existential variables */
 
   CNFFormula cnf = readClauses(in, clauseCount);
 

@@ -13,7 +13,7 @@ class MFSGenerator
   int n;
 
 public:
-  MFSGenerator(const Graph& graph,
+  MFSGenerator(const Graph<size_t>& graph,
 	       std::function<bool(const std::list<int>&)> callback);
 
   long run();

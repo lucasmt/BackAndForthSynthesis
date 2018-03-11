@@ -4,17 +4,7 @@
 
 using std::move;
 
-CNFChain::CNFChain(TrivialSpec first, MSSSpec second)
-  : _first(move(first))
-  , _second(move(second))
+CNFChain::CNFChain(TrivialSpec fst, MSSSpec snd)
+  : first(move(first))
+  , second(move(second))
 {}
-
-const TrivialSpec& CNFChain::first() const
-{
-    return _first;
-}
-
-const MSSSpec& CNFChain::second() const
-{
-    return _second;
-}

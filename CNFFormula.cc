@@ -1,65 +1,81 @@
 #include "CNFFormula.hpp"
+#include "Map.hpp"
 
-#include <algorithm>
-#include <unordered_map>
+#include <numeric>
 
-using std::vector;
-using std::set;
-using std::unordered_map;
+using std::iota;
 
 /** CNFClause **/
 
 CNFClause::CNFClause() {}
 
-CNFClause::CNFClause(int lit)
+CNFClause::CNFClause(BLit lit)
 {
   _lits = { lit };
 }
 
-CNFClause::CNFClause(int l1, int l2)
+CNFClause::CNFClause(BLit l1, BLit l2)
 {
   _lits = { l1, l2 };
 }
 
-CNFClause::CNFClause(vector<int> lits)
-{
-  _lits = lits;
-}
-
-CNFClause& CNFClause::operator|=(int lit)
+CNFClause& CNFClause::operator|=(BLit lit)
 {
   _lits.push_back(lit);
 
   return *this;
 }
 
-const vector<int>& CNFClause::lits() const
+CNFClause& CNFClause::operator|=(const CNFClause& other)
 {
-  return _lits;
+  _lits.insert(_lits.end(), other._lits.begin(), other._lits.end());
+
+  return *this;
+}
+
+CNFClause CNFClause::operator|(const CNFClause& other) const
+{
+  CNFClause newClause(*this);
+
+  newClause |= other;
+
+  return newClause;
+}
+
+CNFClause CNFClause::atLeastOne(const Set<BVar>& vars)
+{
+  CNFClause clause;
+
+  for (BVar var : vars)
+    clause |= var;
+
+  return clause;
+}
+
+CNFClause CNFClause::projection(const Set<BVar>& vars) const
+{
+  CNFClause newClause;
+
+  /* Add literal to new clause only if its variable appears in vars */
+  for (BLit lit : _lits)
+    if (vars.find(abs(lit)) != vars.end())
+      newClause |= lit;
+
+  return newClause;
 }
 
 /** CNFFormula **/
 
 CNFFormula::CNFFormula() {}
 
-CNFFormula::CNFFormula(vector<CNFClause> clauses)
-{
-  _clauses = clauses;
-}
-
-const vector<CNFClause>& CNFFormula::clauses() const
-{
-  return _clauses;
-}
-
-CNFFormula& CNFFormula::operator&=(CNFClause clause)
+CNFFormula& CNFFormula::operator&=(const CNFClause& clause)
 {
   _clauses.push_back(clause);
 
   return *this;
 }
 
-CNFFormula& CNFFormula::operator&=(CNFFormula other)
+CNFFormula& CNFFormula::operator&=(const CNFFormula& other)
 {
   _clauses.insert(_clauses.end(),
 		  other._clauses.begin(),
@@ -77,52 +93,53 @@ CNFFormula CNFFormula::operator&(const CNFFormula& other) const
   return cnf;
 }
 
-VarSet CNFFormula::vars() const
+CNFClause& CNFFormula::operator[](size_t i)
 {
-  VarSet vars;
-
-  for (CNFClause c : _clauses)
-    for (int l : c.lits())
-      vars.insert(abs(l));
-
-  return vars;
+  return _clauses[i];
 }
 
-CNFFormula CNFFormula::projection(const set<int>& vars) const
+const CNFClause& CNFFormula::operator[](size_t i) const
+{
+  return _clauses[i];
+}
+
+const Vector<CNFClause>& CNFFormula::clauses() const
+{
+  return _clauses;
+}
+
+CNFFormula CNFFormula::projection(const Set<BVar>& vars) const
 {
   CNFFormula newCNF;
 
   for (const CNFClause& clause : _clauses)
-    {
-      CNFClause newClause;
-
-      for (int lit : clause.lits())
-	if (vars.find(abs(lit)) != vars.end())
-	  newClause |= lit;
-
-      newCNF &= newClause;
-    }
+    newCNF &= clause.projection(vars);
 
   return newCNF;
 }
 
-Graph CNFFormula::dependencyGraph() const
+Graph<size_t> CNFFormula::dependencyGraph() const
 {
-  Graph g(_clauses.size());
+  /* Initialize a graph with one vertex for every clause */
+  Vector<size_t> range(_clauses.size());
+  iota(range.begin(), range.end(), 0);
+  Graph<size_t> g(range);
 
-  unordered_map<int,set<int>> appearances;
+  /* Collects for every variable the indices of the clauses where it appears */
+  Map<BVar, Set<size_t>> appearances;
 
   for (size_t i = 0; i < _clauses.size(); i++)
-    for (int l : _clauses[i].lits())
-      appearances[abs(l)].insert(i);
+    for (const BLit& lit : _clauses[i])
+      appearances[abs(lit)].insert(i);
 
+  /* Add an edge for each pair of clauses that share a variable */
   for (const auto& entry : appearances)
-    for (int i : entry.second)
-      for (int j : entry.second)
-	{
-	  g.addEdge(i, j);
-	  g.addEdge(j, i);
-	}
+    for (size_t i : entry.second)
+      for (size_t j : entry.second)
+      {
+	g.addEdge(i, j);
+	g.addEdge(j, i);
+      }
 
   return g;
 }

@@ -1,44 +1,23 @@
 #pragma once
 
+#include "Vector.hpp"
+
 #include <set>
 
 /**
- * Generic class for ordered sets.
+ * Extension of std::set.
  */
 template <class T>
-class Set
-{
-  std::set<T> _elems;
+using Set = std::set<T>;
 
-public:
+template <class T>
+T maxElement(const Set<T>& set);
 
-  Set();
-  
-  bool empty() const;
+template <class T>
+bool isSubset(const Set<T>& set1, const Set<T>& set2);
 
-  void insert(T elem);
+template <class T>
+Set<T> setUnion(const Set<T>& set1, const Set<T>& set2);
 
-  void insert(const Set<T>& other);
-
-  T max() const;
-
-  bool hasElem(T elem) const;
-
-  bool subsetOf(const Set<T>& other) const;
-
-  Set<T> setUnion(const Set<T>& other) const;
-
-  Set<T> setDifference(const Set<T>& other) const;
-
-  /* Iterators */
-  
-  typedef typename std::set<T>::iterator iterator;
-  typedef typename std::set<T>::const_iterator iterator;
-
-  inline iterator begin() noexcept;
-  inline const_iterator cbegin() const noexcept;
-  inline iterator end() noexcept;
-  inline const_iterator cend() const noexcept;
-  
-  void erase(iterator position);
-};
+template <class T>
+Set<T> setDifference(const Set<T>& set1, const Set<T>& set2);

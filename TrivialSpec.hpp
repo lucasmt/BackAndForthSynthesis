@@ -4,7 +4,6 @@
 #include "Graph.hpp"
 #include "Vector.hpp"
 #include "Set.hpp"
-#include "Ref.hpp"
 
 /**
  * Second component of the CNF decomposition:
@@ -12,12 +11,12 @@
  */
 class TrivialSpec
 {
-  Ref<Vector<Var>> _defined; /**< z_1, z_2, ..., z_n */
-  Ref<Vector<CNFClause>> _negDefinitions; /**< X_1, X_2, ..., X_n */
+  Vector<BVar> _defined; /**< z_1, z_2, ..., z_n */
+  Vector<CNFClause> _negDefinitions; /**< X_1, X_2, ..., X_n */
   
 public:
   
-  TrivialSpec(Ref<Vector<Var>> defined, Ref<Vector<CNFClause>> negDefinition);
+  TrivialSpec(Vector<BVar> defined, Vector<CNFClause> negDefinitions);
 
   /**
    * Returns graph where:

@@ -1,71 +1,45 @@
 #include "TrivialSpec.hpp"
+#include "Map.hpp"
 
-#include <unordered_set>
-#include <unordered_map>
-#include <iostream>
+#include <numeric>
 
-using std::map;
-using std::vector;
-using std::pair;
-using std::unordered_set;
-using std::unordered_map;
-using std::cout;
-using std::endl;
+using std::iota;
 
-TrivialSpec::TrivialSpec(const map<int,vector<int>>& def)
+TrivialSpec::TrivialSpec(Vector<BVar> defined, Vector<CNFClause> negDefinitions)
+  : _defined(move(defined)),
+    _negDefinitions(move(negDefinitions))
+{}
+
+Graph<size_t> TrivialSpec::conflictGraph() const
 {
-  for (const pair<int,vector<int>>& entry : def)
+  /* Maps every x literal to the indices of the clauses where it appears. */
+  Map<BLit, Vector<size_t>> appearancesOfLit;
+
+  for (size_t i = 0; i < _defined.size(); i++)
   {
-    _outputVars.push_back(entry.first);
-    _def.push_back(entry.second);
-
-    for (int l : entry.second)
-      _inputVars.insert(abs(l));
-  }
-}
-
-const vector<vector<int>>& TrivialSpec::def() const
-{
-  return _def;
-}
-
-VarSet TrivialSpec::inputVars() const
-{
-  return _inputVars;
-}
-
-VarSet TrivialSpec::outputVars() const
-{
-  return VarSet(_outputVars.begin(), _outputVars.end());
-}
-
-Graph TrivialSpec::conflictGraph() const
-{
-  unordered_map<int,unordered_set<int>> zImplying;
-
-  for (size_t i = 0; i < _def.size(); i++)
-  {
-    for (int x : _def[i])
+    for (BLit x : _negDefinitions[i])
     {
-      zImplying[x].insert(i);
-      zImplying[-x]; // to make sure there is entry for the negative literal
+      appearancesOfLit[x].push_back(i);
+      appearancesOfLit[-x]; /* guarantees that there is an entry for the inverse literal as well */
     }
   }
 
-  Graph graph(_def.size());
+  /* Initialize a graph with one vertex for each clause */
+  Vector<size_t> range(_defined.size());
+  iota(range.begin(), range.end(), 0);
+  Graph<size_t> graph(range);
 
-  for (const auto& entry : zImplying)
+  /* Adds an edge between every two clauses that have opposite literals */
+  for (const auto& entry : appearancesOfLit)
   {
-    int x = entry.first;
+    BLit lit = entry.first;
 
-    unordered_set<int> implyingX = entry.second;
-    unordered_set<int> implyingNotX = zImplying[-x];
+    const Vector<size_t>& appearances = entry.second;
+    const Vector<size_t>& antiAppearances = appearancesOfLit[-lit];
 
-    for (int z1 : implyingX)
-      for (int z2 : implyingNotX)
-      {
-	graph.addEdge(z1, z2);
-      }
+    for (size_t i : appearances)
+      for (size_t j : antiAppearances)
+      	graph.addEdge(i, j);
   }
 
   return graph;

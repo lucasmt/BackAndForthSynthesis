@@ -2,7 +2,6 @@
 
 #include "CNFFormula.hpp"
 #include "Set.hpp"
-#include "Ref.hpp"
 
 /**
  * CNF specification composed of:
@@ -11,11 +10,15 @@
  */
 class CNFSpec
 {
-  Set<Var> _inputVars;
-  Set<Var> _outputVars;
+  Set<BVar> _inputVars;
+  Set<BVar> _outputVars;
   CNFFormula _cnf;
 
 public:
 
-  CNFSpec(Set<Var> inputVars, Set<Var> outputVars, CNFFormula cnf);
+  CNFSpec(Set<BVar> inputVars, Set<BVar> outputVars, CNFFormula cnf);
+
+  const Set<BVar>& inputVars() const;
+  const Set<BVar>& outputVars() const;
+  const CNFFormula& cnf() const;
 };

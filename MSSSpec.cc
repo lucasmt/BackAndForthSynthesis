@@ -1,53 +1,20 @@
 #include "MSSSpec.hpp"
 
-#include <iostream>
+#include <utility>
 
-using std::vector;
-using std::cout;
-using std::endl;
+using std::move;
 
-MSSSpec::MSSSpec(vector<int> indicatorVars, CNFFormula cnf)
+MSSSpec::MSSSpec(Vector<BVar> indicatorVars, CNFFormula outputCNF)
+  : _indicatorVars(move(indicatorVars)),
+    _outputCNF(move(outputCNF))
+{}
+
+const Vector<CNFClause>& MSSSpec::outputClauses() const
 {
-  _indicatorVars = indicatorVars; 
-  _cnf = cnf;
+  return _outputCNF.clauses();
 }
 
-const CNFFormula& MSSSpec::outputCNF() const
-{
-  return _cnf;
-}
-
-const vector<int>& MSSSpec::indicatorVars() const
+const Vector<BVar>& MSSSpec::indicatorVars() const
 {
   return _indicatorVars;
-}
-
-VarSet MSSSpec::inputVars() const
-{
-  return VarSet(_indicatorVars.begin(), _indicatorVars.end());
-}
-
-VarSet MSSSpec::outputVars() const
-{
-  return _cnf.vars();
-}
-
-void MSSSpec::print() const
-{
-  const vector<CNFClause>& clauses = _cnf.clauses();
-
-  for (size_t i = 0; i < _indicatorVars.size(); i++)
-  {
-    cout << "z" << _indicatorVars[i] << " -> ";
-
-    for (int lit : clauses[i].lits())
-    {
-      if (lit < 0)
-	cout << "~y" << (-lit) << " \\/ ";
-      else
-	cout << "y" << lit << " \\/ ";
-    }
-
-    cout << endl;
-  }
 }
