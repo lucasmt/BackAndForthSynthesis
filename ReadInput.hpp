@@ -111,10 +111,12 @@ CNFFormula readClauses(ifstream& in, size_t clauseCount)
     }
 
     /* Error if file ended before finding a 0 */
-    if (in.eof())
+    if (lit != 0)
     {
       throw runtime_error("Unexpected end of file while reading DIMACS file");
     }
+
+    cnf &= clause;
   }
 
   return cnf;

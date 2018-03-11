@@ -3,6 +3,10 @@
 #include "CNFFormula.hpp"
 #include "Set.hpp"
 
+#include <iostream>
+using std::cerr;
+using std::endl;
+
 /**
  * CNF specification composed of:
  * - CNF formula;
@@ -21,4 +25,14 @@ public:
   const Set<BVar>& inputVars() const;
   const Set<BVar>& outputVars() const;
   const CNFFormula& cnf() const;
+
+  void print() const
+  {
+    for (const CNFClause& clause : _cnf)
+    {
+      for (BLit lit : clause)
+	cerr << " | " << lit;
+      cerr << endl;
+    }
+  }
 };

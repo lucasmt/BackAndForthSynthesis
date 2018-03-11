@@ -5,6 +5,6 @@
 using std::move;
 
 CNFChain::CNFChain(TrivialSpec fst, MSSSpec snd)
-  : first(move(first))
-  , second(move(second))
+  : first(move(fst))
+  , second(move(snd))
 {}
