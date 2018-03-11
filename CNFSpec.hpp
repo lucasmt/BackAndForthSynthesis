@@ -9,9 +9,13 @@
  * - CNF formula;
  * - Partition of the set of variables into input and output.
  */
-struct CNFSpec
+class CNFSpec
 {
-  const Ref<Set<Var>> inputVars;
-  const Ref<Set<Var>> outputVars;
-  const Ref<CNFFormula> cnf;
+  Set<Var> _inputVars;
+  Set<Var> _outputVars;
+  CNFFormula _cnf;
+
+public:
+
+  CNFSpec(Set<Var> inputVars, Set<Var> outputVars, CNFFormula cnf);
 };

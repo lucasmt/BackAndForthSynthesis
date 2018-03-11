@@ -13,11 +13,12 @@ class Graph
   Vector<V> _vertices; /**< vertices of the graph */
   Map<V, size_t> _indices; /**< _indices[v] = i <-> _vertices[i] = v */
   Vector<Vector<size_t>> _adjacencyList; /**< _adjacencyList[i] contains the indices of the neighbors of _vertices[i] */
+  size_t _edgeCount; /**< number of edges in the graph */
 
 public:
 
-  Graph (const Set<int>& vertices); /**< constructs a graph with the given vertex set and no edges */
-  Graph (const Vector<int>& vertices); /**< same as above */
+  Graph(const Set<T>& vertices); /**< constructs a graph with the given vertex set and no edges */
+  Graph(const Vector<T>& vertices); /**< same as above */
 
   size_t size() const; /**< number of vertices in the graph */
   size_t edgeCount() const; /**< number of edges in the graph */
@@ -34,6 +35,8 @@ public:
    * - There are no self-loops.
    */
   Graph<V> complement() const;
+  
+  Vector<Vector<size_t>> adjacencyMatrix() const; /**< adjacency matrix for the graph */
 
   /**
    * Returns a graph over the given vertex set where:

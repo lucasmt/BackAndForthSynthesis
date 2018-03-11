@@ -1,39 +1,5 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <unordered_map>
-#include <map>
-#include <utility>
-#include <algorithm>
-#include <list>
-#include <set>
-#include <chrono>
 
-#include "CNFChain.hpp"
-#include "CNFFormula.hpp"
-#include "CNFSpec.hpp"
-#include "MSSSpec.hpp"
-#include "TrivialSpec.hpp"
-#include "VarSet.hpp"
-#include "Graph.hpp"
-#include "MSSGenerator.hpp"
-#include "MFSGenerator.hpp"
-
-using std::cout;
-using std::endl;
-using std::runtime_error;
-using std::string;
-using std::ifstream;
-using std::ofstream;
-using std::vector;
-using std::unordered_map;
-using std::map;
-using std::pair;
-using std::make_pair;
-using std::move;
-using std::max;
 using std::list;
-using std::set;
 using std::chrono::system_clock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -41,7 +7,7 @@ using std::chrono::milliseconds;
 set<int> nonEmptyIndices(const CNFFormula& cnf)
 {
   set<int> nonEmpty;
-
+  
   const vector<CNFClause>& clauses = cnf.clauses();
 
   for (size_t i = 0; i < clauses.size(); i++)
@@ -86,80 +52,70 @@ void printMSS(const VarSet& mss, const VarSet& outputSet)
 // *** This algorithm works fine!!! As far as Luacs (3/6/2018) could tell. The main problem is in the next method that uses initial Cy decomposition and is not working.
 
 
-vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
+Vector<Set<Var>> backAndForthAlgorithm(const TrivialSpec& f1, const MSSSpec& f2)
 {
+  /* Graph where every maximal clique corresponds to an MFS of F1 */
+  Graph<size_t> cliquesGraph = f1.conflictGraph().complement();
+
+  const Vector<Var>& indicatorVars = f2.indicatorVars();
+  const Vector<CNFClause>& outputClauses = f2.outputClauses();
+
+  /* Set of all indicator variables */
+  Set<Var> allIndicatorVars(indicatorVars);
+
+  /* Initialize MSS generator */
+  MSSGenerator mssGen(indicatorVars, outputClauses);
     
-  Graph graph = f1.conflictGraph().complement(); // constructs the graph from f1, from which we extract the MIS. ConflictGraph() gives the MIS, complement() gives the cliques graph.
-  
-  CNFFormula cnf = f2.outputCNF(); //Take the Y part of the formula f2 (later to be MSS'd)
-  const vector<CNFClause>& clauses = cnf.clauses(); 
-  
-  const vector<int>& indicatorVars = f2.indicatorVars(); //the z variables from f2 in a specific order (index i holds zi).
-  
-  VarSet allIndicators(indicatorVars.begin(), indicatorVars.end()); //  ?
+  /* MSS will be stored here */
+  Vector<Set<Var>> mssList;
 
-  vector<VarSet> implementation; // Creating the return object.
-
-  MSSGenerator mssGen(clauses, indicatorVars);//from this generator we will get the MSS.
-  
-  
-  
-  auto callback = [&indicatorVars, &mssGen, &implementation, &allIndicators, &graph, &f2]  //in [] is the objects that the callback function uses.
-    (const list<int>& clique) //called whenever a new clique is constructed in a form of a list of indices in the graph
+  /* Function to be called whenever a new maximal clique is found */
+  auto callback = [&] (const list<int>& maxClique)
     {
-        
-      VarSet mfs;
+      /* Construct MFS corresponding to maximal clique, as a set of indicator variables */
+      Set<Var> mfs;
 
-      for (int v : clique)   //for every index in the maximal clique (the MFS) we are getting the z variable that corresponds to the specific vertex.
+      for (int vertexIndex : maxClique)
       {
-	int i = graph.vertex(v);   //we get for what zi this vertex of the graph corresponds to.
-	mfs.insert(indicatorVars[i]);  //getting that zi, and inserting it to form the MFS.  So now we get the MFS with the indices of the origial formula.
+	size_t indicatorVarIndex = graph.vertexByIndex(vertexIndex); /*< get graph vertex corresponding to index in the clique */
+	Var indicatorVar = indicatorVars[indicatorVarIndex]; /*< get variable id corresponding to graph vertex */
+	mfs.insert(indicatorVar);
       }
 
-      printMFS(mfs);
-      
-      bool success; //sucess - we managed to generate a new MSS  Otherwise we ran out of MSS.
+      /* Will be an MSS, or nothing if there are no MSS left to generate */
+      optional<Set<Var>> mss;
 
-      if (mfs.subsetOfAny(implementation))   //checks if this MFS that we obtained was covered before.
-	success = mssGen.generateMSS();  // If it was, we do not store it, but generate an MSS (just the next in line).
+      /* Checks if MFS is a subset of one of the previous MSS */
+      bool mfsAlreadyCovered = any_of(mssList.begin(), mssList.end(), mfs.subsetOf);
+
+      if (mfsAlreadyCovered)
+	potentialMSS = mssGen.generateMSS(); /*< discard MFS and just generate a new MSS */
       else
-	success = mssGen.generateMSSCovering(mfs.vars());  // else we generate a specific MSS that covers the MFS.
+	potentialMSS = mssGen.generateMSSCovering(mfs); /*< generate a new MSS covering the MFS */
 
-      if (success) //we managed to generate a new MSS
+      if (!mss)
+	return false; /*< if we've run out of MSS, stop generating maximal cliques */
+      else
       {
-	VarSet mss = mssGen.getMSS(); //we got the MSS from the generator.
+	mssList.push_back(*mss);
 	
-        implementation.push_back(mss); // We push the MSS to our list.
-        
-	VarSet complement = allIndicators.setDifference(mss); // We take the complement of the MSS. Since we need to add a new clause to the MSS generator to tell the generator not to generate the same MSS again or a subset of it.
-	
-        mssGen.enforceAtLeastOne(complement.vars()); //Adding a clause that says that at least one variable that is not in the previous MSS has to be in the new one. (otherwise we already contained in a previous one).
+	/* Enforce that future MSS should not be subsets of this MSS */
+	Set<Var> notInMSS = allIndicatorVars.setDifference(mss);
+	CNFClause atLeastOneNew = CNFClause::atLeastOne(notInMSS);
+	mssGen.addHardClause(atLeastOneNew);
 
-        // We do not deduce anything about the cliques from the MSS because such deduction is a non trivial problem.
-        
-        
-	printMSS(mss, f2.outputVars());
-	//	cout << "Enforced: ";
-	//	complement.print();
+	return true; /*< continue searching for maximal cliques */
       }
+    }; /* end of callback */
 
-      //      cout << (success ? "Success!" : "Failure!") << endl;
+  /* Initialize maximal-clique generator */
+  MFSGenerator maxCliqueGen(cliquesGraph, callback);
 
-      return success;
-      
-    }; //end callback function.
+  /* Run maximal-clique generator; callback will be called whenever a new maximal clique is found */
+  maxCliqueGen.run();
 
-    
-    
-    
-  MFSGenerator mfsGen(graph, callback); //We initialize an MFS generator that uses the graphs and the callback.
-
-  mfsGen.run(); //running the generator
-
-  return implementation;
+  return mssList;
 }
-
-
 
 /*
 vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)

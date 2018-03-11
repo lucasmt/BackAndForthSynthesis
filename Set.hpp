@@ -13,6 +13,8 @@ class Set
 public:
 
   Set();
+  
+  bool empty() const;
 
   void insert(T elem);
 
@@ -37,4 +39,6 @@ public:
   inline const_iterator cbegin() const noexcept;
   inline iterator end() noexcept;
   inline const_iterator cend() const noexcept;
+  
+  void erase(iterator position);
 };

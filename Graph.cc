@@ -1,176 +1,156 @@
 #include "Graph.hpp"
 
-#include <iostream>
 #include <stack>
 
-using std::vector;
-using std::set;
 using std::stack;
-using std::cout;
-using std::endl;
 
-Graph::Graph(int size)
-  : _size(size),
-    _vertices(_size),
-    _adjacencyMatrix(_size, vector<int>(_size, 0))
+Graph::Graph(const Set<T>& vertices)
+  : _vertices(vertices.begin(), vertices.end()),
+    _adjacencyList(vertices.size()),
+    _edgeCount(0)
 {
-  for (int i = 0; i < _size; i++)
-  {
-    _vertices[i] = i;
-    _indices[i] = i;
-  }
-}
-
-Graph::Graph(const set<int>& vertices)
-  : _size(vertices.size()),
-    _vertices(vertices.begin(), vertices.end()),
-    _adjacencyMatrix(_size, vector<int>(_size, 0))
-{
-  for (int i = 0; i < _size; i++)
+  for (size_t i = 0; i < vertices.size(); i++)
   {
     _indices[_vertices[i]] = i;
   }
 }
 
-Graph::Graph(const vector<int>& vertices)
-  : _size(vertices.size()),
-    _vertices(vertices),
-    _adjacencyMatrix(_size, vector<int>(_size, 0))
+Graph::Graph(const Vector<T>& vertices)
+  : _vertices(vertices.begin(), vertices.end()),
+    _adjacencyList(vertices.size()),
+    _edgeCount(0)
 {
-  for (int i = 0; i < _size; i++)
+  for (size_t i = 0; i < vertices.size(); i++)
   {
     _indices[_vertices[i]] = i;
   }
 }
 
-int Graph::size() const
+size_t Graph::size() const
 {
-  return _adjacencyMatrix.size();
+  return _vertices.size();
 }
 
-int Graph::nEdges() const
+size_t Graph::edgeCount() const
 {
-  int n = size();
-  int c = 0;
-  
-  for (int i = 0; i < n; i++)
-    for (int j = 0; j < n; j++)
-      if (_adjacencyMatrix[i][j] == 1)
-        c++;
-        
-  return c;
+  return _edgeCount;
 }
 
-int Graph::vertex(int i) const
+size_t Graph::vertexByIndex(size_t i) const
 {
   return _vertices[i];
 }
 
-void Graph::addEdge(int from, int to)
+void Graph::addEdge(V from, V to)
 {
-  int i = _indices.at(from);
-  int j = _indices.at(to);
+  size_t i = _indices.at(from);
+  size_t j = _indices.at(to);
 
-  _adjacencyMatrix[i][j] = 1;
+  _adjacencyList[i].push_back(j);
+  _edgeCount++;
 }
 
-Graph Graph::complement() const
+Graph<V> Graph::complement() const
 {
-  int n = size();
-  Graph complement(_vertices);
-  
-  for (int i = 0; i < n; i++)
-    for (int j = 0; j < n; j++)
-      if (i != j && _adjacencyMatrix[i][j] == 0)
-        complement.addEdge(_vertices[i], _vertices[j]);
-        
+  size_t n = _vertices.size();
+  Graph<V> complement(_vertices);
+
+  /* Add an edge (u, v) for every distinct u and v that are not neighbors in the original graph */
+  for (size_t i = 0; i < n; i++)
+  {
+    Vector<bool> isNeighbor(n);
+
+    for (size_t j : _adjacencyList[i])
+      isNeighbor[j] = true;
+
+    for (size_t j = 0; j < n; j++)
+      if (i != j && !isNeighbor[j])
+	complement.addEdge(_vertices[i], _vertices[j]);
+  }
+
   return complement;
 }
 
-const std::vector<std::vector<int>>& Graph::adjacencyMatrix() const
+Vector<Vector<int>> Graph::adjacencyMatrix() const
 {
-  return _adjacencyMatrix;
+  size_t n = _vertices.size();
+  Vector<Vector<int>> adjacencyMatrix(n, Vector<int>(n, 0));
+
+  for (size_t i = 0; i < n; i++)
+    for (size_t j : _adjacencyList[i])
+      adjacencyMatrix[i][j] = 1;
+
+  return adjacencyMatrix;
 }
 
-void Graph::print() const
+Graph<V> Graph::subgraph(const Set<V>& vertices) const
 {
-  for (size_t i = 0; i < _adjacencyMatrix.size(); i++)
+  Graph<V> subgraph(vertices);
+
+  /* For every vertex v1 in the subgraph... */
+  for (V v1 : vertices)
   {
-    cout << _vertices[i] << " --> ";
+    size_t i = _indices.at(v1);
 
-    for (size_t j = 0; j < _adjacencyMatrix[i].size(); j++)
+    /* For every neighbor v2 of v1 in the supergraph... */
+    for (size_t j : _adjacencyList[i])
     {
-      if (_adjacencyMatrix[i][j]) cout << _vertices[j] << " ";
-    }
-
-    cout << endl;
-  }
-}
-
-Graph Graph::subgraph(const set<int>& vertices) const
-{
-  Graph subgraph(vertices);
-
-  for (int v1 : vertices)
-  {
-    for (int v2 : vertices)
-    {
-      int i = _indices.at(v1);
-      int j = _indices.at(v2);
-
-      if (_adjacencyMatrix[i][j])
-	subgraph.addEdge(v1, v2);
+      V v2 = _vertices[j];
+      
+      if (vertices.find(v2) != vertices.end()) /* If v2 is in the subgraph... */
+	subgraph.addEdge(v1, v2); /*< ...add an edge from v1 to v2 */
     }
   }
 
   return subgraph;
 }
 
-vector<set<int>> Graph::connectedComponents() const
+Vector<Set<V>> Graph::connectedComponents() const
 {
-  int n = size();
-  vector<set<int>> components;
-  set<int> allVertices;
+  size_t n = _vertices.size();
+  Vector<Set<V>> components;
 
-  for (int i = 0; i < n; i++)
-    allVertices.insert(i);
+  Vector<size_t> range(n);
+  iota(range.begin(), range.end(), 0); /*< fill range with all numbers from 0 to n - 1 */
+  Set<size_t> allIndices(range); /*< initialize set of all indices with { 0, ..., n - 1 } */
 
-  while (!allVertices.empty())
+  /* Perform depth-first search */
+  while (!allIndices.empty()) /*< stop when all indices have been added to some component */
   {
-    set<int> newVertices;
-    stack<int> toVisit;
+    Set<size_t> componentIndices; /*< indices forming a connected component */
+    stack<size_t> toVisit; /*< indices that should be visited next */
 
-    auto it = allVertices.begin();
-    int head = *it;
+    /* Start with first index that has not been added to a component yet */
+    size_t head = *allIndices.begin();
     toVisit.push(head);
-    newVertices.insert(head);
-    allVertices.erase(it);
+    componentIndices.insert(head);
+    allIndices.erase(it);
 
+    /* Repeat until we have visited every vertex in this connected component */
     do
     {
-      int v = toVisit.top();
+      size_t i = toVisit.top(); /*< take first index from the stack */
       toVisit.pop();
 
-      for (int u = 0; u < n; u++)
+      /* Add every neighbor that has not been visited yet to the stack */
+      for (size_t j : _adjacencyList[i])
       {
-	if (_adjacencyMatrix[v][u])
-	{
-	  auto it = newVertices.find(u);
+	auto it = newIndices.find(j);
 
-	  if (it == newVertices.end())
-	  {
-	    toVisit.push(u);
-	    newVertices.insert(it, u);
-	    allVertices.erase(u);
-	  }
+	if (it == newVertices.end())
+	{
+	  toVisit.push(j);
+	  newIndices.insert(it, j);
+	  allIndices.erase(j);
 	}
       }
     }
     while (!toVisit.empty());
 
-    set<int> component;
+    /* Construct a connected component from the indices */
+    Set<V> component;
 
-    for (int i : newVertices)
+    for (size_t i : newIndices)
       component.insert(_vertices[i]);
 
     components.push_back(component);
