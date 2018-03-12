@@ -69,7 +69,7 @@ public:
    * - Vertex v_i represents clause C_i;
    * - There is an edge between two vertices iff the clauses share a variable.
    */
-  Graph<size_t> dependencyGraph() const;
+  Graph<size_t> dualGraph() const;
 
   /** Iterators */
 

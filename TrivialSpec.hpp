@@ -5,6 +5,8 @@
 #include "Vector.hpp"
 #include "Set.hpp"
 
+#include <functional>
+
 /**
  * Second component of the CNF decomposition:
  * (z_1 <-> ~X_1) /\ (z_2 <-> ~X_2) /\ ... /\ (z_n <-> ~X_n)
@@ -17,6 +19,13 @@ class TrivialSpec
 public:
   
   TrivialSpec(Vector<BVar> defined, Vector<CNFClause> negDefinitions);
+
+  /**
+   * Iterates over definitions, executing the visitor function for each.
+   * Example: For a definition of the form (z <-> ~(l_1 | ... | l_k)),
+   * the inputs given to the visitor would be (z, (l_1, ..., l_k)).
+   */
+  void forEach(std::function<void(BVar, const CNFClause&)> visitor) const;
 
   /**
    * Returns graph where:

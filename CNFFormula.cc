@@ -1,10 +1,6 @@
 #include "CNFFormula.hpp"
 #include "Map.hpp"
 
-#include <numeric>
-
-using std::iota;
-
 /** CNFClause **/
 
 CNFClause::CNFClause() {}
@@ -118,12 +114,10 @@ CNFFormula CNFFormula::projection(const Set<BVar>& vars) const
   return newCNF;
 }
 
-Graph<size_t> CNFFormula::dependencyGraph() const
+Graph<size_t> CNFFormula::dualGraph() const
 {
-  /* Initialize a graph with one vertex for every clause */
-  Vector<size_t> range(_clauses.size());
-  iota(range.begin(), range.end(), 0);
-  Graph<size_t> g(range);
+  /* Initialize a graph with a vertex for every clause */
+  Graph<size_t> g(range(0, _clauses.size() - 1));
 
   /* Collects for every variable the indices of the clauses where it appears */
   Map<BVar, Set<size_t>> appearances;

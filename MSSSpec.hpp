@@ -4,6 +4,8 @@
 #include "Set.hpp"
 #include "Vector.hpp"
 
+#include <functional>
+
 /**
  * Second component of the CNF decomposition:
  * (z_1 -> Y_1) /\ (z_2 -> Y_2) /\ ... /\ (z_n -> Y_n)
@@ -18,5 +20,12 @@ public:
   MSSSpec(Vector<BVar> indicatorVars, CNFFormula outputCNF);
 
   const Vector<BVar>& indicatorVars() const;
-  const Vector<CNFClause>& outputClauses() const;
+  const CNFFormula& outputCNF() const;
+
+  /**
+   * Iterates over clauses, executing the visitor function for each.
+   * Example: For a clause of the form (z -> (l_1 | ... | l_k)),
+   * the inputs given to the visitor would be (z, (l_1, ..., l_k)).
+   */  
+  void forEach(std::function<void(BVar, const CNFClause&)> visitor) const;
 };

@@ -7,6 +7,7 @@ using std::list;
 MFSGenerator::MFSGenerator(const Graph<size_t>& graph,
 			   function<bool(const list<int>&)> callback)
 {
+  /* Construct adjacency matrix of the graph */
   Vector<Vector<size_t>> vAdjacencyMatrix = graph.adjacencyMatrix();
   n = graph.size();
 
@@ -20,8 +21,8 @@ MFSGenerator::MFSGenerator(const Graph<size_t>& graph,
       adjacencyMatrix[i][j] = vAdjacencyMatrix[i][j];
   }
 
+  /* Initialize algorithm */
   pAlgorithm = new TomitaAlgorithm(adjacencyMatrix, n);
-
   pAlgorithm->AddCallBack(callback);
 }
 
@@ -34,6 +35,7 @@ long MFSGenerator::run()
 
 MFSGenerator::~MFSGenerator()
 {
+  /* Free adjacency matrix */
   if (adjacencyMatrix != nullptr)
   {
     int i = 0;
@@ -47,5 +49,6 @@ MFSGenerator::~MFSGenerator()
     free(adjacencyMatrix);
   }
 
+  /* Delete algorithm object */
   delete pAlgorithm;
 }

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Set.hpp"
 #include "Vector.hpp"
 #include "CNFFormula.hpp"
@@ -5,50 +7,23 @@
 #include "MSSGenerator.hpp"
 
 #include <list>
+#include <functional>
 
-using std::list;
-
-/*
-Set<size_t> nonEmptyIndices(const CNFFormula& cnf)
+/**
+ * Constructs the callback function to be called whenever a new maximal clique is found.
+ * - cliquesGraph: Graph from which the cliques were extracted, used to translate indices back to vertices.
+ * - indicatorVars: Array of all indicator variables, used to get the variable corresponding to a graph vertex.
+ * - mssGen: MSS generator.
+ * - allIndicatorVars: Set with all indicator variables, used to complement and block an MSS.
+ * - mssList: List of computed MSS, where the next MSS will be stored.
+ */
+std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<size_t>& cliquesGraph,
+								  const Vector<BVar>& indicatorVars,
+								  MSSGenerator& mssGen,
+								  const Set<BVar>& allIndicatorVars,
+								  Vector<Set<BVar>>& mssList)
 {
-  Set<size_t> nonEmpty;
-  
-  const Vector<CNFClause>& clauses = cnf.clauses();
-
-  for (size_t i = 0; i < clauses.size(); i++)
-    if (!clauses[i].lits().empty())
-      nonEmpty.insert(i);
-
-  return nonEmpty;
-}
-*/
-
-//This is the main algorithm!!!
-// Takes f1,f2, returns a list of sets which represents an assignment to both the z variables and the y variables. Description of the implementation
-// f1 is a formula from X to Z in a form of (z_i <-> \neg xi and x2 and x3) - (the x part is the negation of the x clause).
-// f2 is a formula from Z to Y in the form of z_i --> Cy where Cy is the Y clause.
-// *** This algorithm works fine!!! As far as Luacs (3/6/2018) could tell. The main problem is in the next method that uses initial Cy decomposition and is not working.
-
-
-Vector<Set<BVar>> backAndForthAlgorithm(const TrivialSpec& f1, const MSSSpec& f2)
-{
-  /* Graph where every maximal clique corresponds to an MFS of F1 */
-  Graph<size_t> cliquesGraph = f1.conflictGraph().complement();
-
-  const Vector<BVar>& indicatorVars = f2.indicatorVars();
-  const Vector<CNFClause>& outputClauses = f2.outputClauses();
-
-  /* Set of all indicator variables */
-  Set<BVar> allIndicatorVars(indicatorVars.begin(), indicatorVars.end());
-
-  /* Initialize MSS generator */
-  MSSGenerator mssGen(indicatorVars, outputClauses);
-    
-  /* MSS will be stored here */
-  Vector<Set<BVar>> mssList;
-
-  /* Function to be called whenever a new maximal clique is found */
-  auto callback = [&] (const list<int>& maxClique)
+  return [&] (const std::list<int>& maxClique)
     {
       /* Construct MFS corresponding to maximal clique, as a set of indicator variables */
       Set<BVar> mfs;
@@ -85,10 +60,41 @@ Vector<Set<BVar>> backAndForthAlgorithm(const TrivialSpec& f1, const MSSSpec& f2
 
 	return true; /*< continue searching for maximal cliques */
       }
-    }; /* end of callback */
+    };
+}
 
-  /* Initialize maximal-clique generator */
-  MFSGenerator mfsGen(cliquesGraph, callback);
+
+ /**
+  * Back-and-forth synthesis algorithm. Assumes specification is realizable.
+  * Input: F1 (specification from X to Z of the form e.g. (z_1 <-> ~(x_1 | ~x_2 | x_3)) & ...
+  *        F2 (specification from Z to Y of the form e.g. (z_1 -> (~y_1 | ~y_2 | y_3)) & ...
+  * Output: List of sets representing assignments to the Z and Y variables, such that
+  *         given the assignment to the Zs, the assignment to the Ys satisfies F2.
+  */
+Vector<Set<BVar>> BAFAlgorithm(const TrivialSpec& f1, const MSSSpec& f2)
+{
+  /* Graph where every maximal clique corresponds to an MFS of F1 */
+  Graph<size_t> cliquesGraph = f1.conflictGraph().complement();
+
+  const Vector<BVar>& indicatorVars = f2.indicatorVars();
+  const Vector<CNFClause>& outputClauses = f2.outputCNF().clauses();
+
+  /* Set of all indicator variables */
+  Set<BVar> allIndicatorVars(indicatorVars.begin(), indicatorVars.end());
+
+  /* Initialize MSS generator */
+  MSSGenerator mssGen(indicatorVars, outputClauses);
+    
+  /* MSS will be stored here */
+  Vector<Set<BVar>> mssList;
+
+  /* Initialize maximal-clique generator with graph and callback */
+  MFSGenerator mfsGen(cliquesGraph,
+		      computeAndStoreNextMSS(cliquesGraph,
+					     indicatorVars,
+					     mssGen,
+					     allIndicatorVars,
+					     mssList));
 
   /* Run MFS generator; callback will be called whenever a new maximal clique is found */
   mfsGen.run();
@@ -96,88 +102,47 @@ Vector<Set<BVar>> backAndForthAlgorithm(const TrivialSpec& f1, const MSSSpec& f2
   return mssList;
 }
 
-/*
-vector<VarSet> algorithm(const TrivialSpec& f1, const MSSSpec& f2)
+/**
+ * Version of BAFAlgorithm that first decomposes specification into connected components.
+ */
+Vector<Set<BVar>> BAFConnectedComponents(const TrivialSpec& f1, const MSSSpec& f2)
 {
-  CNFFormula cnf = f2.outputCNF();
-  const vector<CNFClause>& clauses = cnf.clauses();
-  const vector<int>& indicatorVars = f2.indicatorVars();
+  /* Graph where every maximal clique corresponds to an MFS of F1 */
+  Graph<size_t> cliquesGraph = f1.conflictGraph().complement();
 
-  vector<VarSet> implementation;
+  const Vector<BVar>& indicatorVars = f2.indicatorVars();
+  const CNFFormula& outputCNF = f2.outputCNF();
 
-  vector<set<int>> components =
-    cnf.dependencyGraph().connectedComponents();
+  /* MSS will be stored here */
+  Vector<Set<BVar>> mssList;
 
-  for (const set<int>& component : components)
+  Vector<Set<size_t>> connectedComponents = outputCNF.dualGraph().connectedComponents();
+
+  for (const Set<size_t>& indices : connectedComponents)
   {
-    cout << "Connected component: { ";
+    /* Restrict indicator variables, output clauses and cliques graph to the indices in the connected component */
+    Vector<BVar> subIndicatorVars = subsequence(indicatorVars, indices);
+    Vector<CNFClause> subOutputClauses = subsequence(outputCNF.clauses(), indices);
+    Graph<size_t> cliquesSubgraph = cliquesGraph.subgraph(indices);
 
-    for (int v : component)
-      cout << v << ", ";
+    /* Set of all indicator variables */
+    Set<BVar> allIndicatorVars(subIndicatorVars.begin(), subIndicatorVars.end());
 
-    cout << "}" << endl;
+    /* Initialize MSS generator */
+    MSSGenerator mssGen(subIndicatorVars, subOutputClauses);
+    
+    /* Initialize maximal-clique generator with graph and callback */
+    MFSGenerator mfsGen(cliquesSubgraph,
+			computeAndStoreNextMSS(cliquesSubgraph,
+					       indicatorVars, /*< use the original indicatorVars array to get the variable from the index */
+					       mssGen,
+					       allIndicatorVars,
+					       mssList));
 
-    CNFFormula projectedCNF = cnf.projection(component);
-    set<int> subset = nonEmptyIndices(projectedCNF);
-    Graph conflictGraph = f1.conflictGraph().subgraph(subset).complement();
-    vector<CNFClause> projectedClauses;
-    vector<int> projectedIndicators;
-
-    for (int i : subset)
-    {
-      projectedClauses.push_back(clauses[i]);
-      projectedIndicators.push_back(indicatorVars[i]);
-    }
-
-    MSSGenerator mssGen(projectedClauses, projectedIndicators);
-  
-    VarSet allIndicators(projectedIndicators.begin(), projectedIndicators.end());
-
-    auto callback = [&projectedIndicators, &mssGen, &implementation, &allIndicators, &conflictGraph]
-    (const list<int>& clique)
-    {
-      VarSet mfs;
-
-      for (int v : clique)
-      {
-	int i = conflictGraph.vertex(v);
-	mfs.insert(projectedIndicators[i]);
-      }
-
-      cout << "MFS: ";
-      mfs.print();
-      
-      bool success;
-
-      if (mfs.subsetOfAny(implementation))
-	success = mssGen.generateMSS();
-      else
-	success = mssGen.generateMSSCovering(mfs.vars());
-
-      if (success)
-      {
-	VarSet mss = mssGen.getMSS();
-	implementation.push_back(mss);
-	VarSet complement = allIndicators.setDifference(mss);
-	mssGen.enforceAtLeastOne(complement.vars());
-
-	cout << "MSS: ";
-	mss.print();
-	cout << "Enforced: ";
-	complement.print();
-      }
-
-      cout << (success ? "Success!" : "Failure!") << endl;
-
-      return success;
-    };
-
-    MFSGenerator mfsGen(conflictGraph, callback);
-
+    /* Run MFS generator; callback will be called whenever a new maximal clique is found */
     mfsGen.run();
   }
 
-  return implementation;
+  return mssList;
 }
-*/
-
+ 

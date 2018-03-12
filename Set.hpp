@@ -1,16 +1,19 @@
 #pragma once
 
-#include "Vector.hpp"
-
 #include <set>
+#include <vector>
 #include <algorithm>
 #include <iterator>
+#include <numeric>
+#include <cstddef>
 
 /**
- * Extension of std::set.
+ * Type alias for std::set and additional operations.
  */
 template <class T>
 using Set = std::set<T>;
+
+/* Implementation of templated functions in header file so that it can be accessed by code instantiating the template. */
 
 template <class T>
 T maxElement(const Set<T>& set)
@@ -48,3 +51,6 @@ Set<T> setDifference(const Set<T>& set1, const Set<T>& set2)
 
   return newSet;
 }
+
+/** Returns the set representing the range [fromInclusive, toInclusive]. */
+Set<std::size_t> range(std::size_t fromInclusive, std::size_t toInclusive);

@@ -3,12 +3,20 @@
 
 #include <numeric>
 
+using std::move;
 using std::iota;
+using std::function;
 
 TrivialSpec::TrivialSpec(Vector<BVar> defined, Vector<CNFClause> negDefinitions)
   : _defined(move(defined)),
     _negDefinitions(move(negDefinitions))
 {}
+
+void TrivialSpec::forEach(function<void(BVar, const CNFClause&)> visitor) const
+{
+  for (size_t i = 0; i < _defined.size(); i++)
+    visitor(_defined[i], _negDefinitions[i]);
+}
 
 Graph<size_t> TrivialSpec::conflictGraph() const
 {

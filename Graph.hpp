@@ -2,11 +2,12 @@
 
 #include <tuple>
 #include <stack>
-#include <numeric>
 
 #include "Vector.hpp"
 #include "Map.hpp"
 #include "Set.hpp"
+
+/* Implementation in header file so that it can be accessed by code instantiating the template. */
 
 /**
  * Unweighted graph over vertex set of type V.
@@ -21,7 +22,8 @@ class Graph
 
 public:
 
-  Graph(const Set<V>& vertices) /**< constructs a graph with the given vertex set and no edges */
+  /** Constructs a graph with the given vertex set and no edges */
+  Graph(const Set<V>& vertices)
     : _vertices(vertices.begin(), vertices.end()),
       _adjacencyList(vertices.size()),
       _edgeCount(0)
@@ -32,7 +34,8 @@ public:
     }
   }
   
-  Graph(const Vector<V>& vertices) /**< same as above */
+  /** Same as the above */
+  Graph(const Vector<V>& vertices)
     : _vertices(vertices.begin(), vertices.end()),
       _adjacencyList(vertices.size()),
       _edgeCount(0)
@@ -43,22 +46,26 @@ public:
     }
   }
 
-  size_t size() const /**< number of vertices in the graph */
+  /** Number of vertices in the graph */
+  size_t size() const
   {
     return _vertices.size();
   }
   
-  size_t edgeCount() const /**< number of edges in the graph */
+  /** Number of edges in the graph */
+  size_t edgeCount() const
   {
     return _edgeCount;
   }
 
-  V vertexByIndex(size_t i) const /**< returns vertex corresponding to the given index */
+  /** Returns vertex corresponding to the given index */
+  V vertexByIndex(size_t i) const
   {
     return _vertices[i];
   }
 
-  void addEdge(V from, V to) /**< adds and edge between the given vertices */
+  /** Adds an edge between the given vertices */
+  void addEdge(V from, V to)
   {
     size_t i = _indices.at(from);
     size_t j = _indices.at(to);
@@ -67,7 +74,8 @@ public:
     _edgeCount++;
   }
   
-  Vector<std::tuple<V, V>> edges() const /**< returns a list of all edges in the graph */
+  /** Returns a list of all edges in the graph */
+  Vector<std::tuple<V, V>> edges() const
   {
     Vector<std::tuple<V, V>> edges;
 
@@ -104,8 +112,11 @@ public:
 
     return complement;
   }
-  
-  Vector<Vector<size_t>> adjacencyMatrix() const /**< adjacency matrix for the graph */
+
+  /**
+   * Returns graph as an adjacency matrix.
+   */  
+  Vector<Vector<size_t>> adjacencyMatrix() const
   {
     size_t n = _vertices.size();
     Vector<Vector<size_t>> adjacencyMatrix(n, Vector<size_t>(n, 0));
@@ -151,9 +162,7 @@ public:
     size_t n = _vertices.size();
     Vector<Set<V>> components;
 
-    Vector<size_t> range(n);
-    std::iota(range.begin(), range.end(), 0); /*< fill range with all numbers from 0 to n - 1 */
-    Set<size_t> allIndices(range); /*< initialize set of all indices with { 0, ..., n - 1 } */
+    Set<size_t> allIndices = range(0, n-1); /*< initialize set of all indices with { 0, ..., n - 1 } */
 
     /* Perform depth-first search */
     while (!allIndices.empty()) /*< stop when all indices have been added to some component */
