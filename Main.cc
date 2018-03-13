@@ -50,7 +50,8 @@ int main(int argc, char** argv)
 
       /* Call the synthesis algorithm */
       Vector<Set<BVar>> mssList =
-	BAFConnectedComponents(cnfChain.first, cnfChain.second);
+	BAFAlgorithm(cnfChain.first, cnfChain.second);
+	//BAFConnectedComponents(cnfChain.first, cnfChain.second);
 
       auto time = duration_cast<milliseconds>(system_clock::now() - start); /*< stop timing */
 

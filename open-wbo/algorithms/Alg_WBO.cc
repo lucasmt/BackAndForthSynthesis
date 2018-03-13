@@ -773,7 +773,7 @@ void WBO::symmetryBreaking() {
 
 /*_________________________________________________________________________________________________
   |
-  |  unsatSearch : [void] ->  [void]
+  |  unsatSearch : [void] ->  [bool]
   |
   |  Description:
   |
@@ -796,7 +796,7 @@ void WBO::symmetryBreaking() {
   |________________________________________________________________________________________________@*/
 bool WBO::unsatSearch() {
 
-  assumptions.clear();
+  assumptions.clear(); // LMT: Clear assumptions from previous calls
 
   assert(assumptions.size() == 0);
 
@@ -819,13 +819,13 @@ bool WBO::unsatSearch() {
 
   delete solver;
   solver = NULL;
-
+  
   return true;
 }
 
 /*_________________________________________________________________________________________________
   |
-  |  weightSearch : [void] ->  [void]
+  |  weightSearch : [void] ->  [bool]
   |
   |  Description:
   |
@@ -889,7 +889,8 @@ bool WBO::weightSearch() {
           //printf("o %" PRIu64 "\n", lbCost);
         }
         //printAnswer(_OPTIMUM_);
-        return true;//exit(_OPTIMUM_);
+        //exit(_OPTIMUM_);
+        return true;
       } else {
         updateCurrentWeight(weightStrategy);
         uint64_t cost = computeCostModel(solver->model);
@@ -903,7 +904,8 @@ bool WBO::weightSearch() {
           if (verbosity > 0)
             printf("c LB = UB\n");
           //printAnswer(_OPTIMUM_);
-          return true;//exit(_OPTIMUM_);
+          //exit(_OPTIMUM_);
+          return true;
         }
 
         delete solver;
@@ -911,13 +913,11 @@ bool WBO::weightSearch() {
       }
     }
   }
-
-  return true;
 }
 
 /*_________________________________________________________________________________________________
   |
-  |  normalSearch : [void] ->  [void]
+  |  normalSearch : [void] ->  [bool]
   |
   |  Description:
   |
@@ -959,7 +959,8 @@ bool WBO::normalSearch() {
         if (verbosity > 0)
           printf("c LB = UB\n");
         //printAnswer(_OPTIMUM_);
-        return true;//exit(_OPTIMUM_);
+        //exit(_OPTIMUM_);
+        return true;
       }
 
       relaxCore(solver->conflict, coreCost, assumptions);
@@ -970,15 +971,14 @@ bool WBO::normalSearch() {
     if (res == l_True) {
       nbSatisfiable++;
       ubCost = computeCostModel(solver->model);
-      //assert(lbCost == ubCost);
+      //assert(lbCost == ubCost); (LMT: this assertion fails during repeated calls)
       //printf("o %" PRIu64 "\n", lbCost);
       saveModel(solver->model);
       //printAnswer(_OPTIMUM_);
-      return true;//exit(_OPTIMUM_);
+      //exit(_OPTIMUM_);
+      return true;
     }
   }
-
-  return true;
 }
 
 // Public search method
@@ -1003,7 +1003,7 @@ bool WBO::search() {
   else if (weightStrategy == _WEIGHT_NORMAL_ ||
            weightStrategy == _WEIGHT_DIVERSIFY_)
     return weightSearch();
-
+    
   return true;
 }
 

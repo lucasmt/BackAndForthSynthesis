@@ -22,7 +22,7 @@ DEPDIR     +=  ../../encodings ../../algorithms ../../graph ../../classifier
 DEPDIR     += ../../../quick-cliques/src
 MROOT      = $(PWD)/open-wbo/solvers/$(SOLVERDIR)
 LFLAGS     += -lgmpxx -lgmp
-CFLAGS     = -Wall -Wno-parentheses -std=c++11 -DNSPACE=$(NSPACE) -DSOLVERNAME=$(SOLVERNAME) -DVERSION=$(VERSION) -DALLOW_ALLOC_ZERO_BYTES
+CFLAGS     = -Wall -Wno-parentheses -std=c++11 -DNSPACE=$(NSPACE) -DSOLVERNAME=$(SOLVERNAME) -DVERSION=$(VERSION) -DALLOW_ALLOC_ZERO_BYTES -g
 ifeq ($(VERSION),simp)
 DEPDIR     += simp
 CFLAGS     += -DSIMP=1 

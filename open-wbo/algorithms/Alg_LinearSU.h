@@ -68,7 +68,7 @@ public:
     coeffs.clear();
   }
 
-  bool search(); // Linear search.
+  void search(); // Linear search.
 
   // Print solver configuration.
   void printConfiguration(bool bmo, int ptype) {

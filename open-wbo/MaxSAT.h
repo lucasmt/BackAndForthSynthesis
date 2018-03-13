@@ -1,4 +1,4 @@
-/*
+/*!
  * \author Ruben Martins - ruben@sat.inesc-id.pt
  *
  * @section LICENSE
@@ -97,8 +97,8 @@ public:
   }
 
   virtual ~MaxSAT() {
-    //if (maxsat_formula != NULL)
-    //delete maxsat_formula;
+    if (maxsat_formula != NULL)
+      delete maxsat_formula;
   }
 
   void setInitialTime(double initial); // Set initial time.
@@ -154,8 +154,8 @@ public:
 
   void setPrintModel(bool model) { print_model = model; }
   bool getPrintModel() { return print_model; }
-
-  std::vector<int> getModel() const;
+  
+  const vec<lbool>& getModel() const { return model; }
 
 protected:
   // Interface with the SAT solver
@@ -213,4 +213,3 @@ protected:
 } // namespace openwbo
 
 #endif
-

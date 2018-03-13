@@ -102,7 +102,6 @@ void addHardClauseWithIndicator(MaxSATFormula* formula,
 
 MSSGenerator::MSSGenerator(const Vector<BVar>& indicators,
 			   const Vector<CNFClause>& clauses)
-  : maxSatSolver(verbosity, weight, symmetry, symmetry_lim)
 {
   /* Set weight for hard clauses to the maximum possible value */
   uint64_t hardWeight = std::numeric_limits<uint64_t>::max();
@@ -126,15 +125,27 @@ void MSSGenerator::enforceClause(const CNFClause& clause)
   addHardClause(&maxSatFormula, clause);
 }
 
+/* Given an assignment as a boolean vector, return set of variables set to true */
+Set<BVar> variablesSetToTrue(const vec<lbool>& model)
+{
+  Vector<BVar> vars;
+
+  for (int i = 0; i < model.size(); i++)
+    if (model[i] == l_True)
+      vars.push_back(i);
+
+  return Set<BVar>(vars.begin(), vars.end());
+}
+
 Optional<Set<BVar>> MSSGenerator::generateMSS()
 {
-  maxSatSolver.loadFormula(&maxSatFormula);
+  openwbo::WBO maxSatSolver(verbosity, weight, symmetry, symmetry_lim);
+
+  maxSatSolver.loadFormula(maxSatFormula.copyMaxSATFormula());
 
   if (maxSatSolver.search()) /*< search was successful, return MSS */
   {
-    Vector<BVar> model = maxSatSolver.getModel();
-
-    return Set<BVar>(model.begin(), model.end());
+    return variablesSetToTrue(maxSatSolver.getModel());
   }
   else /*< we ran out of MSS, return null object */
   {
@@ -144,6 +155,8 @@ Optional<Set<BVar>> MSSGenerator::generateMSS()
 
 Optional<Set<BVar>> MSSGenerator::generateMSSCovering(const Set<BVar>& vars)
 {
+  openwbo::WBO maxSatSolver(verbosity, weight, symmetry, symmetry_lim);
+
   /* Create copy of the formula */
   MaxSATFormula* copy = maxSatFormula.copyMaxSATFormula();
 
@@ -153,18 +166,14 @@ Optional<Set<BVar>> MSSGenerator::generateMSSCovering(const Set<BVar>& vars)
 
   maxSatSolver.loadFormula(copy);
 
-  if (maxSatSolver.search()) /*< search was successful, return MSS */
+  bool success = maxSatSolver.search();
+
+  if (success) /*< search was successful, return MSS */
   {
-    delete copy; /*< delete copy of the formula */
-
-    Vector<BVar> model = maxSatSolver.getModel();
-
-    return Set<BVar>(model.begin(), model.end());
+    return variablesSetToTrue(maxSatSolver.getModel());
   }
   else /*< we ran out of MSS, return null object */
   {
-    delete copy; /*< delete copy of the formula */
-
     return nullopt;
   }
 }

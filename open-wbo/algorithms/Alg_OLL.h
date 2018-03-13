@@ -58,7 +58,7 @@ public:
       delete solver;
   }
 
-  bool search();
+  void search();
 
   // Print solver configuration.
   void printConfiguration() {

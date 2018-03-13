@@ -242,7 +242,7 @@ vector<list<int>> readInGraphAdjList(int* n, int* m)
     }
 
 #ifdef DEBUG
-    //printArrayOfLinkedLists(adjList, *n);
+    printArrayOfLinkedLists(adjList, *n);
 #endif
 
     return adjList;
@@ -310,7 +310,7 @@ vector<list<int>> readInGraphAdjListEdgesPerLine(int &n, int &m, string const &f
     }
 
 #ifdef DEBUG
-    //printArrayOfLinkedLists(adjList, n);
+    printArrayOfLinkedLists(adjList, n);
 #endif
 
     return adjList;
@@ -368,7 +368,7 @@ vector<list<int>> readInGraphAdjList(int &n, int &m, string const &fileName)
     }
 
 #ifdef DEBUG
-    //printArrayOfLinkedLists(adjList, n);
+    printArrayOfLinkedLists(adjList, n);
 #endif
 
     return adjList;
@@ -419,7 +419,7 @@ vector<list<int>> readInGraphAdjListDimacs(int &n, int &m, string const &fileNam
     }
 
 #ifdef DEBUG
-    //printArrayOfLinkedLists(adjList, n);
+    printArrayOfLinkedLists(adjList, n);
 #endif
 
     return adjList;
@@ -468,7 +468,6 @@ void runAndPrintStatsMatrix(long (*function)(char**,
 
 void RunAndPrintStats(Algorithm *pAlgorithm, list<list<int>> &cliques, bool const outputLatex)
 {
-  //  cout<<"DF: I'm runnning"<<endl;
     fprintf(stderr, "%s: ", pAlgorithm->GetName().c_str());
     fflush(stderr);
 
@@ -659,7 +658,7 @@ vector<int> Tools::ReadMetisOrdering(string const &fileName)
 
     vector<int> ordering;
 
-    int v; // endvertices, to read edges.
+    int v; // u, v; // endvertices, to read edges.
 
     if (!instream.good()  || instream.eof()) {
         fprintf(stderr, "ERROR: Problem reading line 1 in file %s\n", fileName.c_str());
@@ -688,9 +687,9 @@ vector<int> Tools::ReadMetisOrdering(string const &fileName)
 ////if (debug)        cout << endl << flush;
     }
 
-#ifdef DEBUG
+//#ifdef DEBUG
     //printArrayOfLinkedLists(adjList, n);
-#endif
+//#endif
 
     return ordering;
 }

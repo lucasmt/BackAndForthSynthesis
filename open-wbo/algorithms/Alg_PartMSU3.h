@@ -105,7 +105,7 @@ public:
     }
   }
 
-  bool search();
+  void search();
 
   // Print solver configuration.
   void printConfiguration() {

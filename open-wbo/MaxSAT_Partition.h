@@ -28,8 +28,6 @@
 #ifndef MAXSAT_PARTITION_H
 #define MAXSAT_PARTITION_H
 
-#include <cstddef>
-
 #include "MaxSAT.h"
 
 #include "graph/Graph.h"

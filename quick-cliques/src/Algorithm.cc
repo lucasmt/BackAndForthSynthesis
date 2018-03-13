@@ -24,11 +24,11 @@ void Algorithm::AddCallBack(std::function<bool(std::list<int> const&)> callback)
 bool Algorithm::ExecuteCallBacks(std::list<int> const &vertexSet) const
 {
     for (auto &function : m_vCallBacks) {
-      bool cont = function(vertexSet);
-      
-      if (!cont) return false;
+        bool continueEnumeration = function(vertexSet);
+        
+        if (!continueEnumeration) return false;
     }
-
+    
     return true;
 }
 
