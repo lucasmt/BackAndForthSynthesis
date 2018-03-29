@@ -135,7 +135,7 @@ long TomitaAlgorithm::listAllMaximalCliquesMatrix( char** adjacencyMatrix,
                                           partialClique, 
                                           adjacencyMatrix,
                                           vertexSets, vertexLookup, numVertices,
-                                          beginX, beginP, beginR, stepsSinceLastReportedClique);
+                                          beginX, beginP, beginR, stepsSinceLastReportedClique);  //DF: In this function the callback will be invoked.
 
 ////    cout << "Largest Difference : " << largestDifference << endl;
 ////    cout << "Num     Differences: " << numLargeJumps << endl;
@@ -410,15 +410,24 @@ bool TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
 ////        }
 ////
 ////        stepsSinceLastReportedClique = 0;
-        bool continueEnumeration = ExecuteCallBacks(partialClique);
+        
+        
+     
+        
+        
+
+        bool continueEnumeration = ExecuteCallBacks(partialClique);  //DF: This is where the callback is invoked,and it is here where the MSS will be generated (by the callback function). (the callback function is computeAndStoreNextMSS() in Algorith,hpp
         processClique(partialClique);
 
-        return continueEnumeration;
+        return continueEnumeration;   //LUCAS TABAJARA 3/11/2018
     }
 
+    /*   //LUCAS TABAJARA 3/11/2018*/
     // avoid work if P is empty.
     if(beginP >= beginR)
         return true;
+    
+    /* END LUCAS TABAJARA 3/11/2018  */
 
     int* myCandidatesToIterateThrough;
     int numCandidatesToIterateThrough;
@@ -465,13 +474,16 @@ bool TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
                                                 adjacencyMatrix,
                                                 vertexSets, vertexLookup, size,
                                                 newBeginX, newBeginP, newBeginR, stepsSinceLastReportedClique );
-        
+      
+           /*   //LUCAS TABAJARA 3/11/2018*/
         // Early termination                                       
         if (!continueEnumeration)
         {
           Free(myCandidatesToIterateThrough);
           return false;
         }
+        
+         /*   END LUCAS TABAJARA 3/11/2018*/
 
         #ifdef PRINT_CLIQUES_TOMITA_STYLE
         printf("b ");
@@ -508,5 +520,9 @@ bool TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
 
     stepsSinceLastReportedClique++;
     
+     /*   //LUCAS TABAJARA 3/11/2018*/
+    
     return true;
+    
+     /*    END LUCAS TABAJARA 3/11/2018*/
 }

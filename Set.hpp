@@ -21,12 +21,22 @@ T maxElement(const Set<T>& set)
   return *set.rbegin();
 }
 
+
+
 template <class T>
 bool isSubset(const Set<T>& subset, const Set<T>& superset)
 {
-  return std::includes(superset.begin(), superset.begin(),
+  return std::includes(superset.begin(), superset.end(),
 		       subset.begin(), subset.end());
 }
+
+
+
+
+
+
+
+
 
 template <class T>
 Set<T> setUnion(const Set<T>& set1, const Set<T>& set2)

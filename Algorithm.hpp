@@ -5,6 +5,7 @@
 #include "CNFFormula.hpp"
 #include "MFSGenerator.hpp"
 #include "MSSGenerator.hpp"
+#include "Printing.hpp"
 
 #include <list>
 #include <functional>
@@ -21,7 +22,7 @@ std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<si
 								  const Vector<BVar>& indicatorVars,
 								  MSSGenerator& mssGen,
 								  const Set<BVar>& allIndicatorVars,
-								  Vector<Set<BVar>>& mssList)
+								  Vector<Set<BVar>>& mssList)      //DF: This callback is executed whenever a max clique is constructed.
 {
   return [&] (const std::list<int>& maxClique)
     {
@@ -34,6 +35,27 @@ std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<si
 	BVar indicatorVar = indicatorVars[indicatorVarIndex]; /*< get variable id corresponding to graph vertex */
 	mfs.insert(indicatorVar);
       }
+      
+      printf("Printing MFS:");
+      print(mfs);
+      printf("\n");
+   /*   
+      printf("Printing MFS:\n");
+        
+        list<int>::const_iterator it = partialClique.begin();
+
+        int offset =0;
+
+        if (it != partialClique.end()) {
+            printf("%d", *it + offset); //cout << *it;
+            ++it;
+        }
+        while (it != partialClique.end()) {
+            printf(" %d", *it + offset); //cout << " " << *it;
+            ++it;
+        }
+        printf("\n"); //cout << endl;
+     */       
 
       /* Will be an MSS, or nothing if there are no MSS left to generate */
       Optional<Set<BVar>> mss;
@@ -42,17 +64,28 @@ std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<si
       auto isSuperset = [&mfs] (const Set<BVar>& mss) { return isSubset(mfs, mss); };
       bool mfsAlreadyCovered = any_of(mssList.begin(), mssList.end(), isSuperset);
 
-      if (mfsAlreadyCovered)
+      if (mfsAlreadyCovered)   //DF: This is the BUG!!!! It should have entered here but it didn't.
+      {
+          printf("mfs covered\n");     
 	mss = mssGen.generateMSS(); /*< discard MFS and just generate a new MSS */
+      }
       else
 	mss = mssGen.generateMSSCovering(mfs); /*< generate a new MSS covering the MFS */
+      
+        
+        
 
       if (!mss)
 	return false; /*< if we've run out of MSS, stop generating maximal cliques */
       else
       {
 	mssList.push_back(*mss);
-	
+        
+        printf("Printing MSS:");
+        print(*mss);
+        printf("\n");
+        
+        
 	/* Enforce that future MSS should not be subsets of this MSS */
 	Set<BVar> notInMSS = setDifference(allIndicatorVars, *mss);
 	CNFClause atLeastOneNew = CNFClause::atLeastOne(notInMSS);
@@ -94,55 +127,12 @@ Vector<Set<BVar>> BAFAlgorithm(const TrivialSpec& f1, const MSSSpec& f2)
 					     indicatorVars,
 					     mssGen,
 					     allIndicatorVars,
-					     mssList));
+					     mssList));  //DF: This takes a function and setting it as a callback for the tomita algorithm.
 
   /* Run MFS generator; callback will be called whenever a new maximal clique is found */
   mfsGen.run();
+  
+
 
   return mssList;
 }
-
-/**
- * Version of BAFAlgorithm that first decomposes specification into connected components.
- */
-Vector<Set<BVar>> BAFConnectedComponents(const TrivialSpec& f1, const MSSSpec& f2)
-{
-  /* Graph where every maximal clique corresponds to an MFS of F1 */
-  Graph<size_t> cliquesGraph = f1.conflictGraph().complement();
-
-  const Vector<BVar>& indicatorVars = f2.indicatorVars();
-  const CNFFormula& outputCNF = f2.outputCNF();
-
-  /* MSS will be stored here */
-  Vector<Set<BVar>> mssList;
-
-  Vector<Set<size_t>> connectedComponents = outputCNF.dualGraph().connectedComponents();
-
-  for (const Set<size_t>& indices : connectedComponents)
-  {
-    /* Restrict indicator variables, output clauses and cliques graph to the indices in the connected component */
-    Vector<BVar> subIndicatorVars = subsequence(indicatorVars, indices);
-    Vector<CNFClause> subOutputClauses = subsequence(outputCNF.clauses(), indices);
-    Graph<size_t> cliquesSubgraph = cliquesGraph.subgraph(indices);
-
-    /* Set of all indicator variables */
-    Set<BVar> allIndicatorVars(subIndicatorVars.begin(), subIndicatorVars.end());
-
-    /* Initialize MSS generator */
-    MSSGenerator mssGen(subIndicatorVars, subOutputClauses);
-    
-    /* Initialize maximal-clique generator with graph and callback */
-    MFSGenerator mfsGen(cliquesSubgraph,
-			computeAndStoreNextMSS(cliquesSubgraph,
-					       indicatorVars, /*< use the original indicatorVars array to get the variable from the index */
-					       mssGen,
-					       allIndicatorVars,
-					       mssList));
-
-    /* Run MFS generator; callback will be called whenever a new maximal clique is found */
-    mfsGen.run();
-  }
-
-  return mssList;
-}
- 
