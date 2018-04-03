@@ -197,6 +197,7 @@ Vector<Set<BVar>> BAFConnectedComponents(const TrivialSpec& f1, const MSSSpec& f
     Graph<size_t> cliquesSubgraph = cliquesGraph.subgraph(indices);
     
 #if MYDEBUG
+    printf("**************************************************************************************\n");
     printf("Printing graph components:\n");
     print(subIndicatorVars, "z");
     printf("\n");

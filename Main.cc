@@ -35,7 +35,7 @@ int main(int argc, char** argv)
       /* Parses the file into a CNF specification */
       CNFSpec f = loadDIMACS(inputPath);
 
-      cout << "=== CNF specification ===" << endl;
+      cout << "=== CNF  Overall Specification ===" << endl;
       cout << "Input variables: ";
       print(f.inputVars(), "x");
       cout << endl;
@@ -65,7 +65,9 @@ int main(int argc, char** argv)
 
       auto time = duration_cast<milliseconds>(system_clock::now() - start); /*< stop timing */
 
-      cout << "=== Computed MSS ===" << endl;
+      
+      printf("**************************************************************************************\n");
+      cout << "=== Computed Overall MSS ===" << endl;
       
       for (const Set<BVar>& mss : mssList)
       {
