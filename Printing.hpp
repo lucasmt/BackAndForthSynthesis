@@ -43,6 +43,17 @@ void print(const Set<BVar>& vars)
 }
 
 /**
+ * Prints a vector of variables as a set in the form "{ x:i_1, x:i_2, ..., x:i_k }",
+ * where i_1, ..., i_k are the variable identifiers.
+ */
+void print(const Vector<BVar>& vars)
+{
+  Set<BVar> varSet(vars.begin(), vars.end());
+
+  print(varSet);
+}
+
+/**
  * Prints the given clause.
  */
 void print(const CNFClause& clause)
@@ -57,7 +68,7 @@ void print(const CNFClause& clause)
 /**
  * Prints the given CNF clauses.
  */
-void print(const Vector<CNFClauses>& clauses)
+void print(const Vector<CNFClause>& clauses)
 {
   for (const CNFClause& clause : clauses)
   {
