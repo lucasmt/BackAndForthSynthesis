@@ -55,6 +55,18 @@ void print(const CNFClause& clause)
 }
 
 /**
+ * Prints the given CNF clauses.
+ */
+void print(const Vector<CNFClauses>& clauses)
+{
+  for (const CNFClause& clause : clauses)
+  {
+    print(clause);
+    cout << endl;
+  }
+}
+
+/**
  * Prints the given CNF formula.
  */
 void print(const CNFFormula& cnf)

@@ -55,10 +55,13 @@ int main(int argc, char** argv)
 
       auto start = system_clock::now(); /*< start timing */
 
+      //********************************   This is the main method of the algorithm ********************************
       /* Call the synthesis algorithm */
       Vector<Set<BVar>> mssList =
-	BAFAlgorithm(cnfChain.first, cnfChain.second);
-	//BAFConnectedComponents(cnfChain.first, cnfChain.second);
+	//BAFAlgorithm(cnfChain.first, cnfChain.second); //        This is the non Decomposable version
+	BAFConnectedComponents(cnfChain.first, cnfChain.second);  //This is the decomposable version
+        
+      //************************************************************************************************************  
 
       auto time = duration_cast<milliseconds>(system_clock::now() - start); /*< stop timing */
 

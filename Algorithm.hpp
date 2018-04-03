@@ -169,7 +169,7 @@ Vector<Set<BVar>> BAFAlgorithm(const TrivialSpec& f1, const MSSSpec& f2)
 }
 
 /**
- * Version of BAFAlgorithm that first decomposes specification into connected components.
+ * Version of BAFAlgorithm that first decomposes specification into connected components. This method over-runs BAFAlgorithm, 
  */
 Vector<Set<BVar>> BAFConnectedComponents(const TrivialSpec& f1, const MSSSpec& f2)
 {
@@ -186,10 +186,21 @@ Vector<Set<BVar>> BAFConnectedComponents(const TrivialSpec& f1, const MSSSpec& f
 
   for (const Set<size_t>& indices : connectedComponents)
   {
+#if MYDEBUG
+      // printf("Printing Connected Component:\n");   
+    //print(indices);
+#endif
+      
     /* Restrict indicator variables, output clauses and cliques graph to the indices in the connected component */
     Vector<BVar> subIndicatorVars = subsequence(indicatorVars, indices);
     Vector<CNFClause> subOutputClauses = subsequence(outputCNF.clauses(), indices);
     Graph<size_t> cliquesSubgraph = cliquesGraph.subgraph(indices);
+    
+#if MYDEBUG
+    printf("Printing graph components:\n");
+    print(subIndicatorVars);
+    print(subOutputClauses);
+#endif
 
     /* Set of all indicator variables */
     Set<BVar> allIndicatorVars(subIndicatorVars.begin(), subIndicatorVars.end());
