@@ -167,3 +167,65 @@ Vector<Set<BVar>> BAFAlgorithm(const TrivialSpec& f1, const MSSSpec& f2)
 
   return mssList;
 }
+
+/**
+ * Version of BAFAlgorithm that first decomposes specification into connected components.
+ */
+Vector<Set<BVar>> BAFConnectedComponents(const TrivialSpec& f1, const MSSSpec& f2)
+{
+  /* Graph where every maximal clique corresponds to an MFS of F1 */
+  Graph<size_t> cliquesGraph = f1.conflictGraph().complement();
+
+  const Vector<BVar>& indicatorVars = f2.indicatorVars();
+  const CNFFormula& outputCNF = f2.outputCNF();
+
+  /* MSS will be stored here */
+  Vector<Set<BVar>> mssList;
+
+  Vector<Set<size_t>> connectedComponents = outputCNF.dualGraph().connectedComponents();
+
+  for (const Set<size_t>& indices : connectedComponents)
+  {
+    /* Restrict indicator variables, output clauses and cliques graph to the indices in the connected component */
+    Vector<BVar> subIndicatorVars = subsequence(indicatorVars, indices);
+    Vector<CNFClause> subOutputClauses = subsequence(outputCNF.clauses(), indices);
+    Graph<size_t> cliquesSubgraph = cliquesGraph.subgraph(indices);
+
+    /* Set of all indicator variables */
+    Set<BVar> allIndicatorVars(subIndicatorVars.begin(), subIndicatorVars.end());
+
+    /* Initialize MSS generator */
+    MSSGenerator mssGen(subIndicatorVars, subOutputClauses);
+
+    /* Initialize maximal-clique generator with graph and callback */
+    MFSGenerator mfsGen(cliquesSubgraph,
+                        computeAndStoreNextMSS(cliquesSubgraph,
+                                               indicatorVars, /*< use the original indicatorVars array to get the variable from the index */
+                                               mssGen,
+                                               allIndicatorVars,
+                                               mssList));
+
+    /* Run MFS generator; callback will be called whenever a new maximal clique is found */
+    mfsGen.run();
+	  
+#if MYDEBUG   //printing the remaining of the mss
+    printf("No more mfs to cover, printing the remaining mss:\n");
+    Optional<Set<BVar>> mss;
+    Set<BVar> notInMSS;
+    CNFClause atLeastOneNew;
+    mss = mssGen.generateMSS();
+    while (mss) 
+    {
+        printf("Printing MSS:");
+        print(*mss);
+        printf("\n");
+        notInMSS = setDifference(allIndicatorVars, *mss);
+	atLeastOneNew = CNFClause::atLeastOne(notInMSS);
+	mssGen.enforceClause(atLeastOneNew);
+        mss = mssGen.generateMSS();
+    }
+#endif
+  }
+
+  return mssList;
+}
