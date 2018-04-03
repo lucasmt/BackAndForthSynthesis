@@ -6,6 +6,9 @@
 #include <chrono>
 #include <iostream>
 
+
+
+
 using std::chrono::system_clock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -22,6 +25,10 @@ int main(int argc, char** argv)
   {
     try
     {
+        
+#if MYDEBUG
+      cout <<"*** debug mode *****"<<endl;  
+#endif
       /* Path to the input file */
       string inputPath(argv[1]);
 

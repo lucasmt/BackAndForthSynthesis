@@ -140,6 +140,10 @@ long TomitaAlgorithm::listAllMaximalCliquesMatrix( char** adjacencyMatrix,
 ////    cout << "Largest Difference : " << largestDifference << endl;
 ////    cout << "Num     Differences: " << numLargeJumps << endl;
 
+#if MYDEBUG
+    printf("No more mfs\n");
+#endif
+    
     Free(vertexSets);
     Free(vertexLookup);
 
@@ -416,7 +420,7 @@ bool TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
         
         
 
-        bool continueEnumeration = ExecuteCallBacks(partialClique);  //DF: This is where the callback is invoked,and it is here where the MSS will be generated (by the callback function). (the callback function is computeAndStoreNextMSS() in Algorith,hpp
+        bool continueEnumeration = ExecuteCallBacks(partialClique);  //DF: This is where the callback is invoked,and it is here where the MSS will be generated (by the callback function). (the callback function is computeAndStoreNextMSS() in Algorith.hpp
         processClique(partialClique);
 
         return continueEnumeration;   //LUCAS TABAJARA 3/11/2018
@@ -425,8 +429,9 @@ bool TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
     /*   //LUCAS TABAJARA 3/11/2018*/
     // avoid work if P is empty.
     if(beginP >= beginR)
+    {  
         return true;
-    
+    }
     /* END LUCAS TABAJARA 3/11/2018  */
 
     int* myCandidatesToIterateThrough;
@@ -479,6 +484,10 @@ bool TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
         // Early termination                                       
         if (!continueEnumeration)
         {
+            #if MYDEBUG
+      printf("Early termination TomitaAlgorithm.cc\n");
+         #endif
+       
           Free(myCandidatesToIterateThrough);
           return false;
         }

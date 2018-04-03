@@ -273,6 +273,7 @@ int main(int argc, char** argv)
     // Run algorithm
     list<list<int>> cliques;
 
+     
 #ifdef RETURN_CLIQUES_ONE_BY_ONE
     auto storeCliqueInList = [&cliques](list<int> const &clique) {
         cliques.push_back(clique);

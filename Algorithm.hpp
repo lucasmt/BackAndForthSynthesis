@@ -35,10 +35,12 @@ std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<si
 	BVar indicatorVar = indicatorVars[indicatorVarIndex]; /*< get variable id corresponding to graph vertex */
 	mfs.insert(indicatorVar);
       }
-      
+   
+#if MYDEBUG
       printf("Printing MFS:");
       print(mfs);
       printf("\n");
+#endif      
    /*   
       printf("Printing MFS:\n");
         
@@ -66,7 +68,9 @@ std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<si
 
       if (mfsAlreadyCovered)   //DF: This is the BUG!!!! It should have entered here but it didn't.
       {
+#if MYDEBUG
           printf("mfs covered\n");     
+#endif          
 	mss = mssGen.generateMSS(); /*< discard MFS and just generate a new MSS */
       }
       else
@@ -75,16 +79,23 @@ std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<si
         
         
 
-      if (!mss)
-	return false; /*< if we've run out of MSS, stop generating maximal cliques */
+      if (!mss){
+          bool printAll = false;
+          #if MYDEBUG        //printing the remaining mfs
+          printf("No more mss, printing the remaining mfs:\n");
+          printAll = true;
+        #endif
+	return printAll; /*< if we've run out of MSS, stop generating maximal cliques */
+      }
       else
       {
 	mssList.push_back(*mss);
         
+#if MYDEBUG        
         printf("Printing MSS:");
         print(*mss);
         printf("\n");
-        
+#endif        
         
 	/* Enforce that future MSS should not be subsets of this MSS */
 	Set<BVar> notInMSS = setDifference(allIndicatorVars, *mss);
@@ -133,6 +144,26 @@ Vector<Set<BVar>> BAFAlgorithm(const TrivialSpec& f1, const MSSSpec& f2)
   mfsGen.run();
   
 
+#if MYDEBUG   //printing the remaining of the mss
+  printf("No more mfs to cover, printing the remaining mss:\n");
+  Optional<Set<BVar>> mss;
+  Set<BVar> notInMSS;
+  CNFClause atLeastOneNew;
+  mss = mssGen.generateMSS();
+  while (mss) 
+  {
+  
+       printf("Printing MSS:");
+        print(*mss);
+        printf("\n");
+         notInMSS = setDifference(allIndicatorVars, *mss);
+	 atLeastOneNew = CNFClause::atLeastOne(notInMSS);
+	mssGen.enforceClause(atLeastOneNew);
+        mss = mssGen.generateMSS();
+  }
+#endif
+  
+  printf("No more mss\n");
 
   return mssList;
 }
