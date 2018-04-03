@@ -37,21 +37,21 @@ int main(int argc, char** argv)
 
       cout << "=== CNF specification ===" << endl;
       cout << "Input variables: ";
-      print(f.inputVars());
+      print(f.inputVars(), "x");
       cout << endl;
       cout << "Output variables: ";
-      print(f.outputVars());
+      print(f.outputVars(), "y");
       cout << endl;
       cout << "CNF formula:" << endl;
-      print(f.cnf());
+      print(f, "x", "y");
 
       /* Decompose specification into (F1, F2) */
       CNFChain cnfChain = cnfDecomp(f);
 
       cout << "=== F1 ===" << endl;
-      print(cnfChain.first);
+      print(cnfChain.first, "x", "z");
       cout << "=== F2 ===" << endl;
-      print(cnfChain.second);
+      print(cnfChain.second, "z", "y");
 
       auto start = system_clock::now(); /*< start timing */
 
@@ -72,12 +72,12 @@ int main(int argc, char** argv)
 	cout << "MSS: ";
 
 	Set<BVar> indicatorAssignment = setDifference(mss, f.outputVars());
-	print(indicatorAssignment);
+	print(indicatorAssignment, "z");
 
 	cout << " |-> Output assignment: ";
 
 	Set<BVar> outputAssignment = setDifference(mss, indicatorAssignment);
-	print(outputAssignment);
+	print(outputAssignment, "y");
 
 	cout << endl;
       }

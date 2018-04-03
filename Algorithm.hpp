@@ -38,7 +38,7 @@ std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<si
    
 #if MYDEBUG
       printf("Printing MFS:");
-      print(mfs);
+      print(mfs, "x");
       printf("\n");
 #endif      
    /*   
@@ -93,7 +93,7 @@ std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<si
         
 #if MYDEBUG        
         printf("Printing MSS:");
-        print(*mss);
+        print(*mss, "z");
         printf("\n");
 #endif        
         
@@ -154,7 +154,7 @@ Vector<Set<BVar>> BAFAlgorithm(const TrivialSpec& f1, const MSSSpec& f2)
   {
   
        printf("Printing MSS:");
-        print(*mss);
+       print(*mss, "z");
         printf("\n");
          notInMSS = setDifference(allIndicatorVars, *mss);
 	 atLeastOneNew = CNFClause::atLeastOne(notInMSS);
@@ -198,8 +198,9 @@ Vector<Set<BVar>> BAFConnectedComponents(const TrivialSpec& f1, const MSSSpec& f
     
 #if MYDEBUG
     printf("Printing graph components:\n");
-    print(subIndicatorVars);
-    print(subOutputClauses);
+    print(subIndicatorVars, "z");
+    printf("\n");
+    print(subOutputClauses, "y");
 #endif
 
     /* Set of all indicator variables */
@@ -228,7 +229,7 @@ Vector<Set<BVar>> BAFConnectedComponents(const TrivialSpec& f1, const MSSSpec& f
     while (mss) 
     {
         printf("Printing MSS:");
-        print(*mss);
+        print(*mss, "z");
         printf("\n");
         notInMSS = setDifference(allIndicatorVars, *mss);
 	atLeastOneNew = CNFClause::atLeastOne(notInMSS);
