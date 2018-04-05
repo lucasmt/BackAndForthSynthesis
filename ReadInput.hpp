@@ -43,8 +43,7 @@ tuple<int, int> readHeader(ifstream& in)
 
   if (p != "p" && cnf != "cnf")
   {
-    throw runtime_error(
-	  "Incorrect format of DIMACS file: expected \"p cnf\", got \"" +
+    throw runtime_error("Incorrect format of DIMACS file: expected \"p cnf\", got \"" +
 	  p + " " + cnf + "\"");
   }
 

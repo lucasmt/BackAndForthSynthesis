@@ -23,7 +23,7 @@ DEPDIR     += ../../../quick-cliques/src
 MROOT      = $(PWD)/open-wbo/solvers/$(SOLVERDIR)
 LFLAGS     += -lgmpxx -lgmp
 # The flag MYDEBUG below indicates a debugging for Lucas/Dror code. Turn to 0 before final use. 4/2/2018
-CFLAGS     = -Wall -Wno-parentheses -std=c++11 -DNSPACE=$(NSPACE) -DSOLVERNAME=$(SOLVERNAME) -DVERSION=$(VERSION) -DALLOW_ALLOC_ZERO_BYTES -DMYDEBUG=1 -g 
+CFLAGS     = -Wall -Wno-parentheses -std=c++11 -DNSPACE=$(NSPACE) -DSOLVERNAME=$(SOLVERNAME) -DVERSION=$(VERSION) -DALLOW_ALLOC_ZERO_BYTES -DMYDEBUG=0 -g 
 ifeq ($(VERSION),simp)
 DEPDIR     += simp
 CFLAGS     += -DSIMP=1 
