@@ -12,8 +12,11 @@
 using BVar = int;
 using BLit = int;
 
+//DF: 4.6.2018 A simple method of checking whether a literal is negated or unnegated variable.
+bool isPositive(BLit); 
+
 /**
- * Clause in a CNF formula: (l_1 \/ l_2 \/ ... \/ l_k).
+ * Clause in a CNF formula: (l_1 \/ l_2 \/ ... \/ l_k). DF: k>0
  */
 class CNFClause
 {
@@ -34,6 +37,7 @@ public:
   CNFClause projection(const Set<BVar>& vars) const; /**< remove from clause all variables not in the set */
   
   bool eval(const Set<BVar>& asgn) const; // DF 4/6/2018  given an assignment asgn, we return True iff the assignment evals true for that (disjunctive!) clause.
+
 
   /** Iterators */
 

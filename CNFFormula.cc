@@ -1,6 +1,15 @@
 #include "CNFFormula.hpp"
 #include "Map.hpp"
 
+
+
+bool isPositive(BLit i){
+    if (i > 0) 
+        return true;
+    else 
+        return false;
+}
+
 /** CNFClause **/
 
 CNFClause::CNFClause() {}
@@ -38,6 +47,8 @@ CNFClause CNFClause::operator|(const CNFClause& other) const
   return newClause;
 }
 
+
+
 CNFClause CNFClause::atLeastOne(const Set<BVar>& vars)
 {
   CNFClause clause;
@@ -47,6 +58,7 @@ CNFClause CNFClause::atLeastOne(const Set<BVar>& vars)
 
   return clause;
 }
+
 
 CNFClause CNFClause::projection(const Set<BVar>& vars) const
 {
@@ -59,6 +71,39 @@ CNFClause CNFClause::projection(const Set<BVar>& vars) const
 
   return newClause;
 }
+
+
+/*DF: Assume that Set is sorted and contains only the vars assigned true (and those it does not contains are assigned false).
+ * so we iterate over the variables, and for each such var v we check: if v is positive and appears in asgn return true. If v is negative and does not appear in asgn, return true. 
+ * If for all iterations there is no "true" return, then return false
+ */
+bool CNFClause::eval(const Set<BVar>& asgn) const
+{
+    for (BLit lit: _lits)
+    {
+     auto asgnVar  = asgn.find(abs(lit)) ;
+     
+     //printf("var:%d, ispos:%d\n",var,isPositive(var));
+      
+      if (isPositive(lit)==true && asgnVar!=asgn.end())
+          return true;
+      if (isPositive(lit)==false && asgnVar==asgn.end())
+          return true;
+            
+    }  
+    return false;              
+}
+
+
+
+
+
+
+
+
+
+
+
 
 /** CNFFormula **/
 
@@ -114,6 +159,8 @@ CNFFormula CNFFormula::projection(const Set<BVar>& vars) const
   return newCNF;
 }
 
+
+
 Graph<size_t> CNFFormula::dualGraph() const
 {
   /* Initialize a graph with a vertex for every clause */
@@ -137,3 +184,15 @@ Graph<size_t> CNFFormula::dualGraph() const
 
   return g;
 }
+
+//DF we iterate over the clauses, if there is a false one we return false, otherwise return true
+bool CNFFormula::eval(const Set<BVar>& asgn) const
+{
+  for (const CNFClause& clause: _clauses)
+    {
+      if (!clause.eval(asgn))
+          return false;
+    }
+    return true;              
+}
+

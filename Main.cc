@@ -99,12 +99,61 @@ int main(int argc, char** argv)
     MyVerifier.VerifyList();
       
       
+    
+    
+    
+    //DF: a small checking code for the eval function.
+      /*
+       * cout<<"====Verifying my code ====" <<endl;
+      CNFClause tmpClause(5);
+       tmpClause|=4;
+      tmpClause|=3;
+     tmpClause|=-6;
+     
+     cout<<"c1:";
+      print(tmpClause,"x");
+      cout<<endl;
       
       
       
       
+      CNFClause tmpClause2(7);
+      tmpClause2|=4;
+      tmpClause2|=-3;
       
-    }
+      cout<<"c2:";
+      print(tmpClause2,"x");
+      cout<<endl;
+      
+      Set<BVar> tmpAss;
+      tmpAss.insert(7);
+      tmpAss.insert(2);      
+      tmpAss.insert(3);           
+      
+
+   
+      
+      print(tmpAss,"g");   
+      cout<<endl;
+      
+      CNFFormula tmpFormula;
+      tmpFormula&=tmpClause;
+      tmpFormula&=tmpClause2;
+       
+      bool resa = tmpClause.eval(tmpAss);
+      cout<<"result c1:"<<resa<<endl;
+      
+      bool resb = tmpClause2.eval(tmpAss);
+      cout<<"result c2:"<<resb<<endl;
+      
+      bool resTotal = tmpFormula.eval(tmpAss);
+      cout<<"result Total:"<<resTotal<<endl;
+      
+      */
+    
+}
+    
+    
     catch (const runtime_error& e)
     {
       cout << e.what() << endl;
