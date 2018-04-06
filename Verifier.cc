@@ -27,11 +27,15 @@ We present several methods for (1) and a simple method for (2).
 
 #include "Verifier.hpp"
 #include <iostream>
+using std::cout;
+using std::endl;
 
-Verifier::Verifier(Vector<Set<BVar>> mssList,CNFSpec f)
+
+
+Verifier::Verifier(Vector<Set<BVar>> mssList,CNFSpec spec) : f(spec)  //This notation means that f is initiallized with spec, without first initializing empty f.
 {
     this->mssList = mssList;
-    this->f = f;
+   // this->f = spec;                 //This would not work since CNFSpec does not have an empty constructor
     printf("Verifier Generated\n");
 }
 
@@ -46,14 +50,14 @@ bool Verifier::VerifyList()
 	
 
 	Set<BVar> indicatorAssignment = setDifference(mss, f.outputVars());
-	//print(indicatorAssignment, "z");
+	print(indicatorAssignment, "z");
 
-	//cout << " |-> Output assignment: ";
+	cout << " |-> Output assignment: ";
 
 	Set<BVar> outputAssignment = setDifference(mss, indicatorAssignment);
-	//print(outputAssignment, "y");
+	print(outputAssignment, "y");
 
-	//cout << endl;
+	cout << endl;
       }
     return true;
 }

@@ -31,7 +31,7 @@ We present several methods for (1) and a simple method for (2).
 #include "Vector.hpp"
 #include "CNFFormula.hpp"
 #include "CNFSpec.hpp"
-//#include "Printing.hpp"
+#include "Printing.hpp"
 
 #include <list>
 #include <functional>

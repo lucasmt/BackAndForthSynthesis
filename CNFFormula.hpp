@@ -32,6 +32,8 @@ public:
   static CNFClause atLeastOne(const Set<BVar>& vars);
 
   CNFClause projection(const Set<BVar>& vars) const; /**< remove from clause all variables not in the set */
+  
+  bool eval(const Set<BVar>& asgn) const; // DF 4/6/2018  given an assignment asgn, we return True iff the assignment evals true for that (disjunctive!) clause.
 
   /** Iterators */
 
@@ -61,6 +63,8 @@ public:
   const CNFClause& operator[](size_t i) const; /**< read-only access */
 
   const Vector<CNFClause>& clauses() const;
+  
+  bool eval(const Set<BVar>& asgn) const; // DF 4/6/2018  given an assignment asgn, we return True iff the assignment evals true for all clauses in the CNF formula.
 
   CNFFormula projection(const Set<BVar>& vars) const; /**< remove from every clause the variables that are not in the set */
 

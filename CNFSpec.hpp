@@ -16,6 +16,7 @@ class CNFSpec
 
 public:
 
+    
   CNFSpec(Set<BVar> inputVars, Set<BVar> outputVars, CNFFormula cnf);
 
   const Set<BVar>& inputVars() const;

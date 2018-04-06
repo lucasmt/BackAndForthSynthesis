@@ -2,7 +2,7 @@
 #include "CNFDecomp.hpp"
 #include "Algorithm.hpp"
 #include "Printing.hpp"
-//#include "Verifier.hpp"
+#include "Verifier.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -95,8 +95,8 @@ int main(int argc, char** argv)
       
     cout << "=== Verifying ===" << endl;
     
-  //    Verifier MyVerifier(mssList,f);
-    //  MyVerifier.VerifyList();
+      Verifier MyVerifier(mssList,f);
+    MyVerifier.VerifyList();
       
       
       
