@@ -32,7 +32,7 @@ using std::endl;
 
 
 
-Verifier::Verifier(Vector<Set<BVar>> mssList,CNFSpec spec) : f(spec)  //This notation means that f is initiallized with spec, without first initializing empty f.
+Verifier::Verifier(Vector<Set<BVar>> mssList,CNFSpec spec,CNFChain chain) : f(spec), cnfChain(chain)  //This notation means that f is initiallized with spec, without first initializing empty f.
 {
     this->mssList = mssList;
    // this->f = spec;                 //This would not work since CNFSpec does not have an empty constructor
@@ -41,24 +41,50 @@ Verifier::Verifier(Vector<Set<BVar>> mssList,CNFSpec spec) : f(spec)  //This not
 
 Verifier::~Verifier(){}
 
-bool Verifier::VerifyList()
+
+/* DF: 4.6.2018. This algorithm works as follows: For every MSS pair <M.a> of <MSS, assignment> we iterate over all the <Z,clause(Y)> graph and for each pair <z,c(y)> we check if z is contained in the Mss M. 
+ * If so, then we check if the assignment a satisfies the clause c(y). If not, we return false.
+ * The algorithm return true iff for all MSS pairs <M,a> and for every pair <z,c(y)> : if z\in M then c(a) is true.
+ */
+bool Verifier::VerifyMSSList()
 {
-    printf("Verifying list\n");
+    printf("Verifying MSS list\n");
+    
+    MSSSpec second = cnfChain.second; //This holds <the z vector and the entire Y CNF formula>, each z is associate with a corresponding 
+    
     
      for (const Set<BVar>& mss : this->mssList)
       {
 	
-
+        //printing the mss list  
 	Set<BVar> indicatorAssignment = setDifference(mss, f.outputVars());
 	print(indicatorAssignment, "z");
-
 	cout << " |-> Output assignment: ";
-
 	Set<BVar> outputAssignment = setDifference(mss, indicatorAssignment);
 	print(outputAssignment, "y");
+        cout << endl;
+       
+        
+        //verifying that the assignment match F2
+        for (size_t i = 0; i < second.indicatorVars().size(); i++)
+        {
+            auto inVar = indicatorAssignment.find(second.indicatorVars()[i]);
+             if (inVar!=indicatorAssignment.end())
+             {
+                bool evalClause = ((second.outputCNF())[i]).eval(outputAssignment);
+                if (!evalClause)
+                {
+                    cout<<"ERROR IN EVALUATION!!!!!"<<endl;
+                    return false;
+                }
+             }
+            
+        }        
 
-	cout << endl;
+        cout<<" mss eval true "<<endl;
+
       }
+      
     return true;
 }
 
@@ -173,3 +199,5 @@ bool RandomVerifyInputCover() const
 
 	return ok;
 }
+
+//bool RandomVerifyInputCover();
