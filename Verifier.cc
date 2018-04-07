@@ -27,12 +27,18 @@ We present several methods for (1) and a simple method for (2).
 
 #include "Verifier.hpp"
 #include <iostream>
+#include <random>
+
 using std::cout;
 using std::endl;
+using std::bernoulli_distribution;
+using std::random_device;
+using std::mt19937;
+using std::move;
+using std::function;
 
-
-
-Verifier::Verifier(Vector<Set<BVar>> mssList,CNFSpec spec,CNFChain chain) : f(spec), cnfChain(chain)  //This notation means that f is initiallized with spec, without first initializing empty f.
+Verifier::Verifier(Vector<Set<BVar>> mssList,CNFSpec spec,CNFChain chain)
+	: f(spec), cnfChain(chain)  //This notation means that f is initiallized with spec, without first initializing empty f.
 {
     this->mssList = mssList;
    // this->f = spec;                 //This would not work since CNFSpec does not have an empty constructor
@@ -46,7 +52,7 @@ Verifier::~Verifier(){}
  * If so, then we check if the assignment a satisfies the clause c(y). If not, we return false.
  * The algorithm return true iff for all MSS pairs <M,a> and for every pair <z,c(y)> : if z\in M then c(a) is true.
  */
-bool Verifier::VerifyMSSList()
+bool Verifier::VerifyMSSList() const
 {
     printf("Verifying MSS list\n");
     
@@ -88,9 +94,17 @@ bool Verifier::VerifyMSSList()
     return true;
 }
 
+/**
+ * Recursively enumerates all assignments and invokes the callback for each.
+ * 
+ * - 'fixed' denotes the variables that are fixed for every assignment
+ * - 'remaining' denotes the variables that can be set to either true or false
+ * 
+ * Every assignment is composed by taking the union of 'fixed' with a subset of 'remaining'
+ */
 bool forAllAssignments(Set<BVar>& fixed,
                        Set<BVar>& remaining,
-                       function<bool(const Set<BVar>&) callback)
+                       function<bool(const Set<BVar>&)> callback)
 {
 	if (remaining.empty())
 	{
@@ -98,42 +112,81 @@ bool forAllAssignments(Set<BVar>& fixed,
 	}
 	else
 	{
+		/* Take the first of the remaining variables as the pivot */
 		BVar pivot = *remaining.begin();
 
 		remaining.erase(remaining.begin());
 
+		/* Recursive call with the pivot set to false */
 		bool result = forAllAssignments(fixed, remaining, callback);
 
 		if (result)
 		{
 			fixed.insert(pivot);
 
+			/* Recursive call with the pivot set to true */
 			result = forAllAssignments(fixed, remaining, callback);
 
+			/* Remove the pivot from the fixed variables... */
 			fixed.erase(fixed.find(pivot));
 		}
 
+		/* ...and add it back to the remaining variables */
 		remaining.insert(pivot);
 
 		return result;
 	}
 }
 
-bool VerifyInputCover() const
+bool Verifier::checkIfCovered(const Set<BVar>& inputAssignment) const
 {
+	cout << "Test input: ";
+	print(inputAssignment, "x");
+	cout << endl;
+
+	/* Set of z variables activated by the given input */
+	Set<BVar> outputAssignment = cnfChain.first.eval(inputAssignment);
+
+	cout << "Activated variables: ";
+	print(outputAssignment, "z");
+	cout << endl;
+
+	bool inputIsCovered = false;
+
+	/* Look for an MSS that covers the assignment */
+	for (const Set<BVar>& mss : mssList)
+	{
+		if (isSubset(outputAssignment, mss))
+		{
+			cout << "MSS covering this input: ";
+			print(setDifference(mss, f.outputVars()), "z"); // remove y variables from MSS for printing
+			cout << endl;
+
+			inputIsCovered = true;
+			break;
+		}
+	}
+
+	return inputIsCovered;
+}
+
+bool Verifier::VerifyInputCover() const
+{
+	cout << "=== Verifying coverage ===" << endl;
+
 	Set<BVar> inputVars = f.inputVars();
 	Set<BVar> potentialAssignment;
 
-	forAllAssignments(inputVars, potentialAssignment,
-	                  [&f1] (const Set<BVar>& assignment) {
-		                  
+	/* Check for every possible assignment of the input variables if there is an MSS that covers it */
+	return forAllAssignments(potentialAssignment, inputVars,
+	                         [this] (const Set<BVar>& assignment) { return checkIfCovered(assignment); });
 }
 
 /**
  * Uses the given RNG to select a random subset of the given set of variables.
  */
 Set<BVar> randomSubset(const Set<BVar>& vars,
-                       const mt19937& rng)
+                       mt19937 rng)
 {
 	/* Generates booleans with equal probability */
 	bernoulli_distribution dist(0.5);
@@ -150,8 +203,7 @@ Set<BVar> randomSubset(const Set<BVar>& vars,
 }
 
 
-
-bool RandomVerifyInputCover() const
+bool Verifier::RandomVerifyInputCover() const
 {
 	cout << "=== Verifying coverage ===" << endl;
 
@@ -159,7 +211,7 @@ bool RandomVerifyInputCover() const
 	random_device rd;
 	mt19937 rng(rd());
 
-	size_t sampleSize = 100; // number of sample assignments taken
+	size_t sampleSize = 500; // number of sample assignments taken
 	bool ok = true; // is set to false when verification fails
 
 	for (size_t i = 0; i < sampleSize; i++)
@@ -167,37 +219,8 @@ bool RandomVerifyInputCover() const
 		/* Generates random assignment to the x variables */
 		Set<BVar> inputAssignment = randomSubset(f.inputVars(), rng);
 
-		cout << "Random input: ";
-		print(inputAssignment, "x");
-		cout << endl;
-
-		/* Set of z variables activated by the given input */
-		Set<BVar> outputAssignment = f1.eval(inputAssignment);
-
-		cout << "Activated variables: ";
-		print(outputAssignment, "z");
-		cout << endl;
-
-		bool inputIsCovered = false;
-
-		/* Look for an MSS that covers the assignment */
-		for (const Set<BVar>& mss : mssList)
-		{
-			if (isSubset(outputAssignment, mss))
-			{
-				cout << "MSS covering this input: ";
-				print(setDifference(mss, spec.outputVars()), "z"); // remove y variables from MSS for printing
-				cout << endl;
-
-				inputIsCovered = true;
-				break;
-			}
-		}
-
-		ok &= inputIsCovered;
+		ok &= checkIfCovered(inputAssignment);
 	}
 
 	return ok;
 }
-
-//bool RandomVerifyInputCover();

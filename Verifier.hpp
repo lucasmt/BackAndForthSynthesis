@@ -46,6 +46,8 @@ class Verifier
     CNFSpec f;
     CNFChain cnfChain;
 
+	bool checkIfCovered(const Set<BVar>& assignment) const;
+
 public:
 
 Verifier(Vector<Set<BVar>> mssList, CNFSpec f, CNFChain cnfChain);
@@ -54,9 +56,9 @@ Verifier(Vector<Set<BVar>> mssList, CNFSpec f, CNFChain cnfChain);
 
 
 //The following method verify that each MSS is set to the correct assignment. It does it as follows: for every pair <M,a> of <MSS,assignment> in the list the method checks that the assignment satisfies the clauses in the MSS.
-bool VerifyMSSList();
+bool VerifyMSSList() const;
 
-bool VerifyInputCover();
+bool VerifyInputCover() const;
 
-bool RandomVerifyInputCover();
+bool RandomVerifyInputCover() const;
 };
