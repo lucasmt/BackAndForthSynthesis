@@ -167,26 +167,36 @@ bool Verifier::checkIfCovered(const Set<BVar>& inputAssignment) const
 		}
 	}
 
+	if (!inputIsCovered)
+		cout << "Input is not covered" << endl;
+
 	return inputIsCovered;
 }
 
 bool Verifier::VerifyInputCover() const
 {
-	cout << "=== Verifying coverage ===" << endl;
+	cout << "Verifying coverage" << endl;
 
 	Set<BVar> inputVars = f.inputVars();
 	Set<BVar> potentialAssignment;
 
 	/* Check for every possible assignment of the input variables if there is an MSS that covers it */
-	return forAllAssignments(potentialAssignment, inputVars,
-	                         [this] (const Set<BVar>& assignment) { return checkIfCovered(assignment); });
+	bool ok = forAllAssignments(potentialAssignment, inputVars,
+	                            [this] (const Set<BVar>& assignment) { return checkIfCovered(assignment); });
+
+	if (ok)
+		cout << "All test inputs were covered" << endl;
+	else
+		cout << "Error: there were test inputs that weren't covered" << endl;
+
+	return ok;
 }
 
 /**
  * Uses the given RNG to select a random subset of the given set of variables.
  */
 Set<BVar> randomSubset(const Set<BVar>& vars,
-                       mt19937 rng)
+                       mt19937& rng)
 {
 	/* Generates booleans with equal probability */
 	bernoulli_distribution dist(0.5);
@@ -205,7 +215,7 @@ Set<BVar> randomSubset(const Set<BVar>& vars,
 
 bool Verifier::RandomVerifyInputCover() const
 {
-	cout << "=== Verifying coverage ===" << endl;
+	cout << "Verifying coverage" << endl;
 
 	/* Initialize random generation */
 	random_device rd;
@@ -222,5 +232,10 @@ bool Verifier::RandomVerifyInputCover() const
 		ok &= checkIfCovered(inputAssignment);
 	}
 
+	if (ok)
+		cout << "All test inputs were covered" << endl;
+	else
+		cout << "Error: there were test inputs that weren't covered" << endl;
+		
 	return ok;
 }

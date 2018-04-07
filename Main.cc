@@ -59,8 +59,8 @@ int main(int argc, char** argv)
       //********************************   This is the main method of the algorithm ********************************
       /* Call the synthesis algorithm */
       Vector<Set<BVar>> mssList =
-	//BAFAlgorithm(cnfChain.first, cnfChain.second); //        This is the non Decomposable version
-	BAFConnectedComponents(cnfChain.first, cnfChain.second);  //This is the decomposable version
+	      //BAFAlgorithm(cnfChain.first, cnfChain.second); //        This is the non Decomposable version
+	      BAFConnectedComponents(cnfChain.first, cnfChain.second);  //This is the decomposable version
         
       //************************************************************************************************************  
 
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
     
       Verifier MyVerifier(mssList,f,cnfChain);
     MyVerifier.VerifyMSSList();
-      
+    MyVerifier.RandomVerifyInputCover();
       
     
     
