@@ -95,8 +95,8 @@ int main(int argc, char** argv)
       
     cout << "=== Verifying ===" << endl;
     
-      Verifier MyVerifier(mssList,f);
-    MyVerifier.VerifyList();
+      Verifier MyVerifier(mssList,f,cnfChain);
+    MyVerifier.VerifyMSSList();
       
       
     
