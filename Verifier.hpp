@@ -54,7 +54,7 @@ Verifier(Vector<Set<BVar>> mssList, CNFSpec f);
 //The following method verify that each MSS is set to the correct assignment. It does it as follows: for every pair <M,a> of <MSS,assignment> in the list the method checks that the assignment satisfies the clauses in the MSS.
 bool VerifyList();
 
-//bool VerifyInputCover();
+bool VerifyInputCover();
 
-//bool RandomVerifyInputCover();
+bool RandomVerifyInputCover();
 };

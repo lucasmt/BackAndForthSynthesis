@@ -18,6 +18,20 @@ void TrivialSpec::forEach(function<void(BVar, const CNFClause&)> visitor) const
     visitor(_defined[i], _negDefinitions[i]);
 }
 
+Set<BVar> TrivialSpec::eval(const Set<BVar>& assignment) const
+{
+	Set<BVar> outputAssignment;
+
+	forEach([&] (BVar var, const CNFClause& negDefinition)
+	{
+		/* Add output variable to the assignment if the negation of its definition evaluates to false */
+		if (!negDefinition.eval(assignment))
+			outputAssignment.insert(var);
+	});
+	
+	return outputAssignment;        
+}
+
 Graph<size_t> TrivialSpec::conflictGraph() const
 {
   /* Maps every x literal to the indices of the clauses where it appears. */

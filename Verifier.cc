@@ -62,6 +62,114 @@ bool Verifier::VerifyList()
     return true;
 }
 
-//bool VerifyInputCover();
+bool forAllAssignments(Set<BVar>& fixed,
+                       Set<BVar>& remaining,
+                       function<bool(const Set<BVar>&) callback)
+{
+	if (remaining.empty())
+	{
+		return callback(fixed);
+	}
+	else
+	{
+		BVar pivot = *remaining.begin();
 
-//bool RandomVerifyInputCover();
+		remaining.erase(remaining.begin());
+
+		bool result = forAllAssignments(fixed, remaining, callback);
+
+		if (result)
+		{
+			fixed.insert(pivot);
+
+			result = forAllAssignments(fixed, remaining, callback);
+
+			fixed.erase(fixed.find(pivot));
+		}
+
+		remaining.insert(pivot);
+
+		return result;
+	}
+}
+
+bool VerifyInputCover() const
+{
+	Set<BVar> inputVars = f.inputVars();
+	Set<BVar> potentialAssignment;
+
+	forAllAssignments(inputVars, potentialAssignment,
+	                  [&f1] (const Set<BVar>& assignment) {
+		                  
+}
+
+/**
+ * Uses the given RNG to select a random subset of the given set of variables.
+ */
+Set<BVar> randomSubset(const Set<BVar>& vars,
+                       const mt19937& rng)
+{
+	/* Generates booleans with equal probability */
+	bernoulli_distribution dist(0.5);
+
+	Set<BVar> subset;
+
+	for (BVar var : vars)
+	{
+		if (dist(rng))
+			subset.insert(var);
+	}
+
+	return subset;
+}
+
+
+
+bool RandomVerifyInputCover() const
+{
+	cout << "=== Verifying coverage ===" << endl;
+
+	/* Initialize random generation */
+	random_device rd;
+	mt19937 rng(rd());
+
+	size_t sampleSize = 100; // number of sample assignments taken
+	bool ok = true; // is set to false when verification fails
+
+	for (size_t i = 0; i < sampleSize; i++)
+	{
+		/* Generates random assignment to the x variables */
+		Set<BVar> inputAssignment = randomSubset(f.inputVars(), rng);
+
+		cout << "Random input: ";
+		print(inputAssignment, "x");
+		cout << endl;
+
+		/* Set of z variables activated by the given input */
+		Set<BVar> outputAssignment = f1.eval(inputAssignment);
+
+		cout << "Activated variables: ";
+		print(outputAssignment, "z");
+		cout << endl;
+
+		bool inputIsCovered = false;
+
+		/* Look for an MSS that covers the assignment */
+		for (const Set<BVar>& mss : mssList)
+		{
+			if (isSubset(outputAssignment, mss))
+			{
+				cout << "MSS covering this input: ";
+				print(setDifference(mss, spec.outputVars()), "z"); // remove y variables from MSS for printing
+				cout << endl;
+
+				inputIsCovered = true;
+				break;
+			}
+		}
+
+		ok &= inputIsCovered;
+	}
+
+	return ok;
+}
