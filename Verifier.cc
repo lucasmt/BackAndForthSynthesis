@@ -37,10 +37,10 @@ using std::mt19937;
 using std::move;
 using std::function;
 
-Verifier::Verifier(Vector<Set<BVar>> mssList,CNFSpec spec,CNFChain chain)
+Verifier::Verifier(Model model,CNFSpec spec,CNFChain chain)
 	: f(spec), cnfChain(chain)  //This notation means that f is initiallized with spec, without first initializing empty f.
 {
-    this->mssList = mssList;
+    this->model = model;
    // this->f = spec;                 //This would not work since CNFSpec does not have an empty constructor
     printf("Verifier Generated\n");
 }
@@ -54,42 +54,43 @@ Verifier::~Verifier(){}
  */
 bool Verifier::VerifyMSSList() const
 {
-    printf("Verifying MSS list\n");
+	printf("Verifying MSS list\n");
     
-    MSSSpec second = cnfChain.second; //This holds <the z vector and the entire Y CNF formula>, each z is associate with a corresponding 
+	MSSSpec second = cnfChain.second; //This holds <the z vector and the entire Y CNF formula>, each z is associate with a corresponding 
     
-    
-     for (const Set<BVar>& mss : this->mssList)
-      {
-	
-        //printing the mss list  
-	Set<BVar> indicatorAssignment = setDifference(mss, f.outputVars());
-	print(indicatorAssignment, "z");
-	cout << " |-> Output assignment: ";
-	Set<BVar> outputAssignment = setDifference(mss, indicatorAssignment);
-	print(outputAssignment, "y");
-        cout << endl;
+	for (size_t id = 0; id < model.componentCount(); id++)
+	{
+		for (const Set<BVar>& mss : model.mssForComponent(id))
+		{
+			//printing the mss list  
+			Set<BVar> indicatorAssignment = setDifference(mss, f.outputVars());
+			print(indicatorAssignment, "z");
+			cout << " |-> Output assignment: ";
+			Set<BVar> outputAssignment = setDifference(mss, indicatorAssignment);
+			print(outputAssignment, "y");
+			cout << endl;
        
         
-        //verifying that the assignment match F2
-        for (size_t i = 0; i < second.indicatorVars().size(); i++)
-        {
-            auto inVar = indicatorAssignment.find(second.indicatorVars()[i]);
-             if (inVar!=indicatorAssignment.end())
-             {
-                bool evalClause = ((second.outputCNF())[i]).eval(outputAssignment);
-                if (!evalClause)
-                {
-                    cout<<"ERROR IN EVALUATION!!!!!"<<endl;
-                    return false;
-                }
-             }
+			//verifying that the assignment match F2
+			for (size_t i = 0; i < second.indicatorVars().size(); i++)
+			{
+				auto inVar = indicatorAssignment.find(second.indicatorVars()[i]);
+				if (inVar!=indicatorAssignment.end())
+				{
+					bool evalClause = ((second.outputCNF())[i]).eval(outputAssignment);
+					if (!evalClause)
+					{
+						cout<<"ERROR IN EVALUATION!!!!!"<<endl;
+						return false;
+					}
+				}
             
-        }        
+			}        
 
-        cout<<" mss eval true "<<endl;
+			cout<<" mss eval true "<<endl;
 
-      }
+		}
+	}
       
     return true;
 }
@@ -151,26 +152,43 @@ bool Verifier::checkIfCovered(const Set<BVar>& inputAssignment) const
 	print(outputAssignment, "z");
 	cout << endl;
 
-	bool inputIsCovered = false;
+	const Vector<Set<BVar>>& components = model.allComponents();
 
-	/* Look for an MSS that covers the assignment */
-	for (const Set<BVar>& mss : mssList)
+	/* For every component... */
+	for (size_t i = 0; i < components.size(); i++)
 	{
-		if (isSubset(outputAssignment, mss))
+		/* ...restrict the assignment to the variables in the component */
+		Set<BVar> restrictedAssignment = setIntersection(outputAssignment, components[i]);
+
+		bool foundMSSCover = false;
+
+		/* ...and look for an MSS that covers the restricted assignment */
+		for (const Set<BVar>& mss : model.mssForComponent(i))
 		{
-			cout << "MSS covering this input: ";
-			print(setDifference(mss, f.outputVars()), "z"); // remove y variables from MSS for printing
+			foundMSSCover = isSubset(restrictedAssignment, mss);
+
+			if (foundMSSCover)
+			{
+				cout << "Found partial cover: ";
+				print(restrictedAssignment, "z");
+				cout << " is covered by ";
+				print(setDifference(mss, f.outputVars()), "z"); /*< remove y variables from the MSS for printing */
+				cout << endl;
+				break;
+			}
+		}
+
+		if (!foundMSSCover)
+		{
+			cout << "No cover found for ";
+			print(restrictedAssignment, "z");
 			cout << endl;
 
-			inputIsCovered = true;
-			break;
+			return false;
 		}
 	}
 
-	if (!inputIsCovered)
-		cout << "Input is not covered" << endl;
-
-	return inputIsCovered;
+	return true;
 }
 
 bool Verifier::VerifyInputCover() const

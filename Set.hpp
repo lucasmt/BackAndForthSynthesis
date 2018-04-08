@@ -18,7 +18,7 @@ using Set = std::set<T>;
 template <class T>
 T maxElement(const Set<T>& set)
 {
-  return *set.rbegin();
+	return *set.rbegin();
 }
 
 
@@ -26,8 +26,8 @@ T maxElement(const Set<T>& set)
 template <class T>
 bool isSubset(const Set<T>& subset, const Set<T>& superset)
 {
-  return std::includes(superset.begin(), superset.end(),
-		       subset.begin(), subset.end());
+	return std::includes(superset.begin(), superset.end(),
+	                     subset.begin(), subset.end());
 }
 
 
@@ -41,25 +41,37 @@ bool isSubset(const Set<T>& subset, const Set<T>& superset)
 template <class T>
 Set<T> setUnion(const Set<T>& set1, const Set<T>& set2)
 {
-  Set<T> newSet;
+	Set<T> newSet;
 
-  std::set_union(set1.begin(), set1.end(),
-		 set2.begin(), set2.end(),
-		 std::inserter(newSet, newSet.begin()));
+	std::set_union(set1.begin(), set1.end(),
+	               set2.begin(), set2.end(),
+	               std::inserter(newSet, newSet.begin()));
 
-  return newSet;
+	return newSet;
+}
+
+template <class T>
+Set<T> setIntersection(const Set<T>& set1, const Set<T>& set2)
+{
+	Set<T> newSet;
+
+	std::set_intersection(set1.begin(), set1.end(),
+	                      set2.begin(), set2.end(),
+	                      std::inserter(newSet, newSet.begin()));
+	
+	return newSet;
 }
 
 template <class T>
 Set<T> setDifference(const Set<T>& set1, const Set<T>& set2)
 {
-  Set<T> newSet;
+	Set<T> newSet;
 
-  std::set_difference(set1.begin(), set1.end(),
-		      set2.begin(), set2.end(),
-		      std::inserter(newSet, newSet.begin()));
-
-  return newSet;
+	std::set_difference(set1.begin(), set1.end(),
+	                    set2.begin(), set2.end(),
+	                    std::inserter(newSet, newSet.begin()));
+	
+	return newSet;
 }
 
 /** Returns the set representing the range [fromInclusive, toInclusive]. */

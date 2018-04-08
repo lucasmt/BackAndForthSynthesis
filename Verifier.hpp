@@ -33,6 +33,7 @@ We present several methods for (1) and a simple method for (2).
 #include "CNFSpec.hpp"
 #include "Printing.hpp"
 #include "CNFChain.hpp"
+#include "Model.hpp"
 
 #include <list>
 #include <functional>
@@ -42,7 +43,7 @@ We present several methods for (1) and a simple method for (2).
 class Verifier
 {
     
-    Vector<Set<BVar>> mssList;
+	Model model;
     CNFSpec f;
     CNFChain cnfChain;
 
@@ -50,7 +51,7 @@ class Verifier
 
 public:
 
-Verifier(Vector<Set<BVar>> mssList, CNFSpec f, CNFChain cnfChain);
+Verifier(Model model, CNFSpec f, CNFChain cnfChain);
 
 ~Verifier();
 
