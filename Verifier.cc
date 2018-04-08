@@ -41,8 +41,11 @@ Verifier::Verifier(Model model,CNFSpec spec,CNFChain chain)
 	: f(spec), cnfChain(chain)  //This notation means that f is initiallized with spec, without first initializing empty f.
 {
     this->model = model;
-   // this->f = spec;                 //This would not work since CNFSpec does not have an empty constructor
+
+    // this->f = spec;                 //This would not work since CNFSpec does not have an empty constructor
+#if MYDEBUG >=1
     printf("Verifier Generated\n");
+#endif
 }
 
 Verifier::~Verifier(){}
@@ -54,22 +57,28 @@ Verifier::~Verifier(){}
  */
 bool Verifier::VerifyMSSList() const
 {
-	printf("Verifying MSS list\n");
-    
+#if MYDEBUG >=1	
+    printf("Verifying MSS list\n");
+#endif    
 	MSSSpec second = cnfChain.second; //This holds <the z vector and the entire Y CNF formula>, each z is associate with a corresponding 
     
 	for (size_t id = 0; id < model.componentCount(); id++)
 	{
 		for (const Set<BVar>& mss : model.mssForComponent(id))
 		{
+                    
 			//printing the mss list  
 			Set<BVar> indicatorAssignment = setDifference(mss, f.outputVars());
+                        #if MYDEBUG >=1    
 			print(indicatorAssignment, "z");
 			cout << " |-> Output assignment: ";
+#endif
 			Set<BVar> outputAssignment = setDifference(mss, indicatorAssignment);
+                        #if MYDEBUG >=1
 			print(outputAssignment, "y");
+
 			cout << endl;
-       
+   #endif    
         
 			//verifying that the assignment match F2
 			for (size_t i = 0; i < second.indicatorVars().size(); i++)
@@ -80,14 +89,17 @@ bool Verifier::VerifyMSSList() const
 					bool evalClause = ((second.outputCNF())[i]).eval(outputAssignment);
 					if (!evalClause)
 					{
+                                            #if MYDEBUG >=1
 						cout<<"ERROR IN EVALUATION!!!!!"<<endl;
+#endif
 						return false;
 					}
 				}
             
 			}        
-
+#if MYDEBUG >=1
 			cout<<" mss eval true "<<endl;
+#endif
 
 		}
 	}
@@ -141,17 +153,18 @@ bool forAllAssignments(Set<BVar>& fixed,
 
 bool Verifier::checkIfCovered(const Set<BVar>& inputAssignment) const
 {
+    #if MYDEBUG >=1
 	cout << "Test input: ";
 	print(inputAssignment, "x");
 	cout << endl;
-
+#endif
 	/* Set of z variables activated by the given input */
 	Set<BVar> outputAssignment = cnfChain.first.eval(inputAssignment);
-
+#if MYDEBUG >=1
 	cout << "Activated variables: ";
 	print(outputAssignment, "z");
 	cout << endl;
-
+#endif
 	const Vector<Set<BVar>>& components = model.allComponents();
 
 	/* For every component... */
@@ -169,21 +182,24 @@ bool Verifier::checkIfCovered(const Set<BVar>& inputAssignment) const
 
 			if (foundMSSCover)
 			{
+                            #if MYDEBUG >=1
 				cout << "Found partial cover: ";
 				print(restrictedAssignment, "z");
 				cout << " is covered by ";
 				print(setDifference(mss, f.outputVars()), "z"); /*< remove y variables from the MSS for printing */
 				cout << endl;
+#endif
 				break;
 			}
 		}
 
 		if (!foundMSSCover)
 		{
+                    #if MYDEBUG >=1
 			cout << "No cover found for ";
 			print(restrictedAssignment, "z");
 			cout << endl;
-
+#endif
 			return false;
 		}
 	}
@@ -193,20 +209,21 @@ bool Verifier::checkIfCovered(const Set<BVar>& inputAssignment) const
 
 bool Verifier::VerifyInputCover() const
 {
+    #if MYDEBUG >=1
 	cout << "Verifying coverage" << endl;
-
+#endif
 	Set<BVar> inputVars = f.inputVars();
 	Set<BVar> potentialAssignment;
 
 	/* Check for every possible assignment of the input variables if there is an MSS that covers it */
 	bool ok = forAllAssignments(potentialAssignment, inputVars,
 	                            [this] (const Set<BVar>& assignment) { return checkIfCovered(assignment); });
-
+#if MYDEBUG >=1
 	if (ok)
 		cout << "All test inputs were covered" << endl;
 	else
 		cout << "Error: there were test inputs that weren't covered" << endl;
-
+#endif
 	return ok;
 }
 
@@ -233,8 +250,9 @@ Set<BVar> randomSubset(const Set<BVar>& vars,
 
 bool Verifier::RandomVerifyInputCover() const
 {
+    #if MYDEBUG >=1
 	cout << "Verifying coverage" << endl;
-
+#endif
 	/* Initialize random generation */
 	random_device rd;
 	mt19937 rng(rd());
@@ -249,11 +267,11 @@ bool Verifier::RandomVerifyInputCover() const
 
 		ok &= checkIfCovered(inputAssignment);
 	}
-
+#if MYDEBUG >=1
 	if (ok)
 		cout << "All test inputs were covered" << endl;
 	else
 		cout << "Error: there were test inputs that weren't covered" << endl;
-		
+#endif
 	return ok;
 }

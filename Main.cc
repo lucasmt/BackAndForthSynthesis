@@ -28,14 +28,14 @@ int main(int argc, char** argv)
 		{
         
 #if MYDEBUG
-			cout <<"*** debug mode *****"<<endl;  
+			cout <<"*** Debug mode: " <<MYDEBUG <<" *****"<<endl;  
 #endif
 			/* Path to the input file */
 			string inputPath(argv[1]);
 
 			/* Parses the file into a CNF specification */
 			CNFSpec f = loadDIMACS(inputPath);
-
+#if MYDEBUG >=1
 			cout << "=== CNF  Overall Specification ===" << endl;
 			cout << "Input variables: ";
 			print(f.inputVars(), "x");
@@ -45,15 +45,15 @@ int main(int argc, char** argv)
 			cout << endl;
 			cout << "CNF formula:" << endl;
 			print(f, "x", "y");
-
+#endif                        
 			/* Decompose specification into (F1, F2) */
 			CNFChain cnfChain = cnfDecomp(f);
-
+#if MYDEBUG >=1
 			cout << "=== F1 ===" << endl;
 			print(cnfChain.first, "x", "z");
 			cout << "=== F2 ===" << endl;
 			print(cnfChain.second, "z", "y");
-
+#endif
 			auto start = system_clock::now(); /*< start timing */
 
 			//********************************   This is the main method of the algorithm ********************************
@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 
 			auto time = duration_cast<milliseconds>(system_clock::now() - start); /*< stop timing */
 
-      
+#if MYDEBUG >=1      
 			printf("**************************************************************************************\n");
 			cout << "=== Computed Overall MSS ===" << endl;
       
@@ -92,6 +92,7 @@ int main(int argc, char** argv)
 					cout << endl;
 				}
 			}
+#endif			
 
 			cout << "=== Stats ===" << endl;
 

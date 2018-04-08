@@ -39,7 +39,7 @@ std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<si
 			mfs.insert(indicatorVar);
 		}
    
-#if MYDEBUG
+#if MYDEBUG >=2  
 		printf("Printing MFS:");
 		print(mfs, "x");
 		printf("\n");
@@ -68,7 +68,7 @@ std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<si
 		/* Checks if MFS is a subset of one of the previous MSS */
 		if (model.alreadyCovered(componentId, mfs))   //DF: This is the BUG!!!! It should have entered here but it didn't.
 		{
-#if MYDEBUG
+#if MYDEBUG >=2  
 			printf("mfs covered\n");     
 #endif          
 			mss = mssGen.generateMSS(); /*< discard MFS and just generate a new MSS */
@@ -81,7 +81,7 @@ std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<si
 
 		if (!mss){
 			bool printAll = false;
-#if MYDEBUG        //printing the remaining mfs
+#if MYDEBUG >=2         //printing the remaining mfs
 			printf("No more mss, printing the remaining mfs:\n");
 			printAll = true;
 #endif
@@ -89,7 +89,7 @@ std::function<bool(const std::list<int>&)> computeAndStoreNextMSS(const Graph<si
 		}
 		else
 		{
-#if MYDEBUG        
+#if MYDEBUG >=2        
 			printf("Printing MSS:");
 			print(*mss, "z");
 			printf("\n");
@@ -149,7 +149,7 @@ Model BAFAlgorithm(const TrivialSpec& f1, const MSSSpec& f2)
 	mfsGen.run();
   
 
-#if MYDEBUG   //printing the remaining of the mss
+#if MYDEBUG >=2     //printing the remaining of the mss
 	printf("No more mfs to cover, printing the remaining mss:\n");
 	Optional<Set<BVar>> mss;
 	Set<BVar> notInMSS;
@@ -200,7 +200,7 @@ Model BAFConnectedComponents(const TrivialSpec& f1, const MSSSpec& f2)
 		Vector<CNFClause> subOutputClauses = subsequence(outputCNF.clauses(), indices);
 		Graph<size_t> cliquesSubgraph = cliquesGraph.subgraph(indices);
     
-#if MYDEBUG
+#if MYDEBUG >=2  
 		printf("**************************************************************************************\n");
 		printf("Printing graph components:\n");
 		print(subIndicatorVars, "z");
@@ -230,7 +230,7 @@ Model BAFConnectedComponents(const TrivialSpec& f1, const MSSSpec& f2)
 		/* Run MFS generator; callback will be called whenever a new maximal clique is found */
 		mfsGen.run();
 	  
-#if MYDEBUG   //printing the remaining of the mss
+#if MYDEBUG >=2    //printing the remaining of the mss
 		printf("No more mfs to cover, printing the remaining mss:\n");
 		Optional<Set<BVar>> mss;
 		Set<BVar> notInMSS;

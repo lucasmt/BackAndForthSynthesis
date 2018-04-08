@@ -484,7 +484,7 @@ bool TomitaAlgorithm::listAllMaximalCliquesMatrixRecursive( long* cliqueCount,
         // Early termination                                       
         if (!continueEnumeration)
         {
-            #if MYDEBUG
+          #if MYDEBUG >=2  
       printf("Early termination TomitaAlgorithm.cc\n");
          #endif
        
