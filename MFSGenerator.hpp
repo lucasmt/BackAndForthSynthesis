@@ -1,28 +1,32 @@
 #pragma once
 
+#include "CNFFormula.hpp"
+#include "Set.hpp"
+#include "Map.hpp"
+#include "Vector.hpp"
 #include "Graph.hpp"
-#include "quick-cliques/src/Algorithm.h"
-
-#include <list>
-#include <functional>
+#include "Optional.hpp"
+#include "open-wbo/solvers/glucose4.1/core/Solver.h"
 
 /**
  * Class that generates Maximal Cliques representing Maximal Falsifiable Subsets.
  */
 class MFSGenerator
 {
-  Algorithm* pAlgorithm; /**< algorithm used to generate maximal cliques */
-  char** adjacencyMatrix; /**< adjacency matrix of the graph */
-  int n; /**< number of vertices of the graph */
+  Set<BVar> _relevantIndicators;
+  Vector<BVar> _indicatorVars;
+  Map<BVar, size_t> _index;
+
+  Glucose::Solver _satSolver;
 
 public:
 
   /** Constructs a generator that calls the callback function for every max-clique of the graph. */
-  MFSGenerator(const Graph<size_t>& graph,
-	       std::function<bool(const std::list<int>&)> callback);
+  MFSGenerator(Set<BVar> relevantIndicators,
+	       const Vector<BVar>& indicatorVars,
+	       const Graph<size_t>& graph);
 
-  /** Run the maximal-clique generation procedure */
-  long run();
+  Optional<Set<BVar>> newMFS();
 
-  ~MFSGenerator();
+  void blockMSS(const Set<BVar>& mss);
 };

@@ -100,8 +100,10 @@ void addHardClauseWithIndicator(MaxSATFormula* formula,
   formula->addHardClause(lits); /*< add clause to the formula */
 }
 
-MSSGenerator::MSSGenerator(const Vector<BVar>& indicators,
+MSSGenerator::MSSGenerator(Set<BVar> indicatorVarSet,
+			   const Vector<BVar>& indicators,
 			   const Vector<CNFClause>& clauses)
+  : allIndicatorVars(indicatorVarSet)
 {
   /* Set weight for hard clauses to the maximum possible value */
   uint64_t hardWeight = std::numeric_limits<uint64_t>::max();
@@ -125,6 +127,14 @@ void MSSGenerator::enforceClause(const CNFClause& clause)
   addHardClause(&maxSatFormula, clause);
 }
 
+void MSSGenerator::blockMSS(const Set<BVar>& mss)
+{
+  /* Enforce that future MSS should not be subsets of this MSS */
+  Set<BVar> notInMSS = setDifference(allIndicatorVars, mss);
+  CNFClause atLeastOneNew = CNFClause::atLeastOne(notInMSS);
+  enforceClause(atLeastOneNew);
+}
+
 /* Given an assignment as a boolean vector, return set of variables set to true */
 Set<BVar> variablesSetToTrue(const vec<lbool>& model)
 {
@@ -137,7 +147,7 @@ Set<BVar> variablesSetToTrue(const vec<lbool>& model)
   return Set<BVar>(vars.begin(), vars.end());
 }
 
-Optional<Set<BVar>> MSSGenerator::generateMSS()
+Optional<Set<BVar>> MSSGenerator::newMSS()
 {
   openwbo::WBO maxSatSolver(verbosity, weight, symmetry, symmetry_lim);
 
@@ -145,7 +155,10 @@ Optional<Set<BVar>> MSSGenerator::generateMSS()
 
   if (maxSatSolver.search()) /*< search was successful, return MSS */
   {
-    return variablesSetToTrue(maxSatSolver.getModel());
+    Set<BVar> mss = variablesSetToTrue(maxSatSolver.getModel());
+    blockMSS(mss);
+
+    return mss;
   }
   else /*< we ran out of MSS, return null object */
   {
@@ -153,7 +166,7 @@ Optional<Set<BVar>> MSSGenerator::generateMSS()
   }
 }
 
-Optional<Set<BVar>> MSSGenerator::generateMSSCovering(const Set<BVar>& vars)
+Optional<Set<BVar>> MSSGenerator::newMSSCovering(const Set<BVar>& vars)
 {
   openwbo::WBO maxSatSolver(verbosity, weight, symmetry, symmetry_lim);
 
@@ -170,7 +183,10 @@ Optional<Set<BVar>> MSSGenerator::generateMSSCovering(const Set<BVar>& vars)
 
   if (success) /*< search was successful, return MSS */
   {
-    return variablesSetToTrue(maxSatSolver.getModel());
+    Set<BVar> mss = variablesSetToTrue(maxSatSolver.getModel());
+    blockMSS(mss);
+
+    return mss;
   }
   else /*< we ran out of MSS, return null object */
   {

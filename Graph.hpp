@@ -73,7 +73,7 @@ public:
     _adjacencyList[i].push_back(j);
     _edgeCount++;
   }
-  
+
   /** Returns a list of all edges in the graph */
   Vector<std::tuple<V, V>> edges() const
   {
@@ -81,7 +81,7 @@ public:
 
     for (size_t i = 0; i < _vertices.size(); i++)
       for (size_t j : _adjacencyList[i])
-        edges.emplace_back(_vertices[i], _vertices[j]);
+	edges.emplace_back(_vertices[i], _vertices[j]);
 
     return edges;
   }

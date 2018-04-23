@@ -15,6 +15,7 @@ using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::cout;
 using std::endl;
+using std::exception;
 
 int main(int argc, char** argv)
 {
@@ -171,7 +172,7 @@ int main(int argc, char** argv)
 		}
     
     
-		catch (const runtime_error& e)
+		catch (const exception& e)
 		{
 			cout << e.what() << endl;
 		}
