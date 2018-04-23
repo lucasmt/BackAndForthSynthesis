@@ -12,20 +12,24 @@
  */
 class MSSSpec
 {
-  Vector<BVar> _indicatorVars; /**< z_1, z_2, ..., z_n */
-  CNFFormula _outputCNF; /**< Y_1 /\ Y_2 /\ ... /\ Y_n */
+	Vector<BVar> _indicatorVars; /**< z_1, z_2, ..., z_n */
+	Set<BVar> _outputVars; /**< y_1, y_2, ..., y_k */
+	CNFFormula _outputCNF; /**< Y_1 /\ Y_2 /\ ... /\ Y_n */
 
 public:
 
-  MSSSpec(Vector<BVar> indicatorVars, CNFFormula outputCNF);
+	MSSSpec(Vector<BVar> indicatorVars, Set<BVar> outputVars, CNFFormula outputCNF);
 
-  const Vector<BVar>& indicatorVars() const;
-  const CNFFormula& outputCNF() const;
+	const Vector<BVar>& indicatorVars() const;
+	const Set<BVar>& outputVars() const;
+	const CNFFormula& outputCNF() const;
 
-  /**
-   * Iterates over clauses, executing the visitor function for each.
-   * Example: For a clause of the form (z -> (l_1 | ... | l_k)),
-   * the inputs given to the visitor would be (z, (l_1, ..., l_k)).
-   */  
-  void forEach(std::function<void(BVar, const CNFClause&)> visitor) const;
+	BVar maxVar() const;
+
+	/**
+	 * Iterates over clauses, executing the visitor function for each.
+	 * Example: For a clause of the form (z -> (l_1 | ... | l_k)),
+	 * the inputs given to the visitor would be (z, (l_1, ..., l_k)).
+	 */  
+	void forEach(std::function<void(BVar, const CNFClause&)> visitor) const;
 };

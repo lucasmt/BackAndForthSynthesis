@@ -44,7 +44,7 @@ CNFChain cnfDecomp(const CNFSpec& spec)
 
   /* Construct F_1 and F_2 */
   TrivialSpec f1(indicatorVars, move(inputClauses)); /*< make a copy of indicatorVars */
-  MSSSpec f2(move(indicatorVars), move(outputCNF));
+  MSSSpec f2(move(indicatorVars), outputVars, move(outputCNF)); /*< make a copy of outputVars */
 
   return CNFChain(move(f1), move(f2));
 }
