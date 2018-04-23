@@ -128,6 +128,21 @@ public:
     return adjacencyMatrix;
   }
 
+	Map<size_t, Set<size_t>> edgeRelation() const
+	{
+		Map<size_t, Set<size_t>> relation;
+
+		for (int i = 0; i < _adjacencyList.size(); i++)
+		{
+			for (size_t neighbor : _adjacencyList[i])
+			{
+				relation[i].insert(neighbor);
+			}
+		}
+
+		return relation;
+	}
+
   /**
    * Returns a graph over the given vertex set where:
    * - There is an edge between two vertices iff there was such an edge in the original graph.

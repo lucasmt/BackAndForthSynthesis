@@ -13,20 +13,21 @@
  */
 class MFSGenerator
 {
-  Set<BVar> _relevantIndicators;
-  Vector<BVar> _indicatorVars;
-  Map<BVar, size_t> _index;
+	Set<BVar> _relevantIndicators;
+	Vector<BVar> _indicatorVars;
+	Map<BVar, size_t> _index;
+	Map<size_t, Set<size_t>> _edgeRelation;
 
-  Glucose::Solver _satSolver;
+	Glucose::Solver _satSolver;
 
 public:
 
-  /** Constructs a generator that calls the callback function for every max-clique of the graph. */
-  MFSGenerator(Set<BVar> relevantIndicators,
-	       const Vector<BVar>& indicatorVars,
-	       const Graph<size_t>& graph);
+	/** Constructs a generator that calls the callback function for every max-clique of the graph. */
+	MFSGenerator(Set<BVar> relevantIndicators,
+	             const Vector<BVar>& indicatorVars,
+	             const Graph<size_t>& graph);
 
-  Optional<Set<BVar>> newMFS();
-
-  void blockMSS(const Set<BVar>& mss);
+	Optional<Set<BVar>> newMFS();
+	
+	void blockMSS(const Set<BVar>& mss);
 };

@@ -12,13 +12,16 @@ MFSGenerator::MFSGenerator(Set<BVar> relevantIndicators,
 			   const Graph<size_t>& conflictGraph)
   : _relevantIndicators(relevantIndicators)
   , _indicatorVars(indicatorVars)
+  , _edgeRelation(conflictGraph.edgeRelation())
 {
   for (size_t i = 0; i < indicatorVars.size(); i++)
   {
     _index[indicatorVars[i]] = i;
   }
 
-  _satSolver.setIncrementalMode();
+  
+
+  //_satSolver.setIncrementalMode();
 
   for (size_t i = 0; i < indicatorVars.size(); i++)
   {
@@ -31,38 +34,62 @@ MFSGenerator::MFSGenerator(Set<BVar> relevantIndicators,
   }
 }
 
-/* Given an assignment as a boolean vector, return set of variables set to true */
-Set<BVar> variablesSetToTrue(const vec<lbool>& model, const Vector<BVar>& indicatorVars)
-{
-  Vector<BVar> vars;
-
-  for (int i = 0; i < model.size(); i++)
-    if (model[i] == l_True)
-      vars.push_back(indicatorVars[i]);
-
-  return Set<BVar>(vars.begin(), vars.end());
-}
-
 Optional<Set<BVar>> MFSGenerator::newMFS()
 {
-  if (_satSolver.solve())
-  {
-    return variablesSetToTrue(_satSolver.model, _indicatorVars);
-  }
-  else
-  {
-    return nullopt;
-  }
+	if (_satSolver.solve())
+	{
+		/* Returns SAT, a falsifiable set was found */
+
+		/* Create a vector with the indices of all variables set to true */
+		Vector<size_t> inModel;
+		Vector<size_t> notInModel;
+
+		for (int i = 0; i < _satSolver.model.size(); i++)
+		{
+			if (_satSolver.model[i] == l_True)
+				inModel.push_back(i);
+			else
+				notInModel.push_back(i);
+		}
+
+		/* Initialize a set of indices in the MFS */
+		Set<size_t> mfsIndices(inModel.begin(), inModel.end());
+
+		/* For every variable not in the model, try to extend with that variable */
+		for (size_t i : notInModel)
+		{
+			auto isNeighbor = [this, i] (size_t j)
+			{
+				return _edgeRelation[i].find(j) != _edgeRelation[i].end();
+			};
+
+			bool conflict = std::any_of(mfsIndices.begin(), mfsIndices.end(), isNeighbor);
+
+			if (!conflict)
+				mfsIndices.insert(i);
+		}
+
+		Set<BVar> mfs;
+
+		for (size_t i : mfsIndices)
+			mfs.insert(_indicatorVars[i]);
+
+		return mfs;
+	}
+	else
+	{
+		return nullopt;
+	}
 }
 
 void MFSGenerator::blockMSS(const Set<BVar>& mss)
 {
-  vec<Lit> glucoseClause;
+	vec<Lit> glucoseClause;
 
-  for (BVar notInMSS : setDifference(_relevantIndicators, mss))
-  {
-    glucoseClause.push(mkLit(_index.at(notInMSS)));
-  }
+	for (BVar notInMSS : setDifference(_relevantIndicators, mss))
+	{
+		glucoseClause.push(mkLit(_index.at(notInMSS)));
+	}
 
-  _satSolver.addClause(glucoseClause);
+	_satSolver.addClause(glucoseClause);
 }

@@ -36,7 +36,7 @@ bool computeAndStoreNextMSS(size_t componentId,
   {
 #if MYDEBUG >=2  
     printf("Printing MFS:");
-    print(mfs, "x");
+    print(*mfs, "x");
     printf("\n");
 #endif      
 
