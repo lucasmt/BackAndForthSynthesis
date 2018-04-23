@@ -108,10 +108,10 @@ int main(int argc, char** argv)
 			
 			bool ok = MyVerifier.VerifyMSSList();
 
-			if (f.inputVars().size() <= 15) /*< if number of possible assignments is "small", just try all of them */
+			if (f.inputVars().size() <= 15) //< if number of possible assignments is "small", just try all of them 
 				ok &= MyVerifier.VerifyInputCover();
 			else
-				ok &= MyVerifier.RandomVerifyInputCover(); /*< otherwise, select a random sample */
+				ok &= MyVerifier.RandomVerifyInputCover(); //< otherwise, select a random sample 
       
 			if (ok)
 				cout << "The model passed the verification" << endl;

@@ -9,4 +9,4 @@
 #SBATCH --output=out/slurm-%j.out
 #SBATCH --error=err/slurm-%j.err
 
-./decomp benchmarks/$FILENAME.qdimacs > experiments/$FILENAME
+./decomp RunSupratikBenchmarks/$FILENAME.qdimacs > experiments/$FILENAME
