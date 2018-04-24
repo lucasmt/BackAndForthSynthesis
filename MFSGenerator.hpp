@@ -9,25 +9,27 @@
 #include "open-wbo/solvers/glucose4.1/core/Solver.h"
 
 /**
- * Class that generates Maximal Cliques representing Maximal Falsifiable Subsets.
+ * Class that generates Maximal Falsifiable Subsets using a SAT solver.
  */
 class MFSGenerator
 {
-	Set<BVar> _relevantIndicators;
-	Vector<BVar> _indicatorVars;
-	Map<BVar, size_t> _index;
-	Map<size_t, Set<size_t>> _edgeRelation;
+	Set<BVar> _relevantIndicators; /*< indicator variables in the current connected component */
+	Vector<BVar> _indicatorVars; /*< indicator variables across all components by index */
+	Graph<size_t> _conflictGraph; /*< graph where every MIS represents an MFS */
+	Map<BVar, size_t> _index; /*< _index[v] == i iff _indicatorVars[i] = v */
 
-	Glucose::Solver _satSolver;
+	Glucose::Solver _satSolver; /*< SAT solver used to generate MFS */
 
 public:
 
-	/** Constructs a generator that calls the callback function for every max-clique of the graph. */
+	/** Constructs a generator that produces MFS corresponding to MIS in the given conflict graph */
 	MFSGenerator(Set<BVar> relevantIndicators,
-	             const Vector<BVar>& indicatorVars,
-	             const Graph<size_t>& graph);
+	             Vector<BVar> indicatorVars,
+	             Graph<size_t> conflictGraph);
 
+	/** Generates a new MFS, or nothing if there are no MFS left */
 	Optional<Set<BVar>> newMFS();
 	
+	/** Block an MSS such that future MFS will not be contained in it */
 	void blockMSS(const Set<BVar>& mss);
 };

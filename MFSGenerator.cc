@@ -1,81 +1,80 @@
 #include "MFSGenerator.hpp"
 
+#include <utility>
+
 using Glucose::vec;
 using Glucose::Lit;
 using Glucose::mkLit;
 using Glucose::lbool;
 using std::tuple;
 using std::get;
+using std::move;
 
 MFSGenerator::MFSGenerator(Set<BVar> relevantIndicators,
-			   const Vector<BVar>& indicatorVars,
-			   const Graph<size_t>& conflictGraph)
-  : _relevantIndicators(relevantIndicators)
-  , _indicatorVars(indicatorVars)
-  , _edgeRelation(conflictGraph.edgeRelation())
+                           Vector<BVar> indicatorVars,
+                           Graph<size_t> conflictGraph)
+	: _relevantIndicators(relevantIndicators)
+	, _indicatorVars(move(indicatorVars))
+	, _conflictGraph(move(conflictGraph))
 {
-  for (size_t i = 0; i < indicatorVars.size(); i++)
-  {
-    _index[indicatorVars[i]] = i;
-  }
+	for (size_t i = 0; i < _indicatorVars.size(); i++)
+	{
+		_index[_indicatorVars[i]] = i;
+	}
 
-  
+	_satSolver.setIncrementalMode();
 
-  //_satSolver.setIncrementalMode();
+	for (size_t i = 0; i < _indicatorVars.size(); i++)
+	{
+		_satSolver.newVar();
+	}
 
-  for (size_t i = 0; i < indicatorVars.size(); i++)
-  {
-    _satSolver.newVar();
-  }
-
-  for (tuple<size_t, size_t> edge : conflictGraph.edges())
-  {
-    _satSolver.addClause(~mkLit(get<0>(edge)), ~mkLit(get<1>(edge)));
-  }
+	/* Add clauses saying that if two vertices are connected they cannot be in the same MFS */
+	for (tuple<size_t, size_t> edge : _conflictGraph.edges())
+	{
+		_satSolver.addClause(~mkLit(get<0>(edge)), ~mkLit(get<1>(edge)));
+	}
 }
 
 Optional<Set<BVar>> MFSGenerator::newMFS()
 {
+	/* Solver returned SAT, a falsifiable set was found */
 	if (_satSolver.solve())
-	{
-		/* Returns SAT, a falsifiable set was found */
-
-		/* Create a vector with the indices of all variables set to true */
-		Vector<size_t> inModel;
-		Vector<size_t> notInModel;
+	{	
+		/* Split variables between those in the model and those not in the model */
+		Set<BVar> inModel;
+		Set<BVar> notInModel;
 
 		for (int i = 0; i < _satSolver.model.size(); i++)
 		{
 			if (_satSolver.model[i] == l_True)
-				inModel.push_back(i);
+				inModel.insert(_indicatorVars[i]);
 			else
-				notInModel.push_back(i);
+				notInModel.insert(_indicatorVars[i]);
 		}
 
-		/* Initialize a set of indices in the MFS */
-		Set<size_t> mfsIndices(inModel.begin(), inModel.end());
+		/* Set of indicator variables in the model, will be extended to an MFS */
+		Set<BVar> mfs = setIntersection(inModel, _relevantIndicators);
 
-		/* For every variable not in the model, try to extend with that variable */
-		for (size_t i : notInModel)
+		/* For every indicator variable not in the model, try to extend MFS with that variable */
+		for (BVar v : setIntersection(notInModel, _relevantIndicators))
 		{
-			auto isNeighbor = [this, i] (size_t j)
+			auto isNeighbor = [this, v] (BVar u)
 			{
-				return _edgeRelation[i].find(j) != _edgeRelation[i].end();
+				return _conflictGraph.edgeExists(_index[v], _index[u]);
 			};
 
-			bool conflict = std::any_of(mfsIndices.begin(), mfsIndices.end(), isNeighbor);
+			/* Test if there is an edge between the new vertex and any vertex already in the MFS */
+			bool conflict = std::any_of(mfs.begin(), mfs.end(), isNeighbor);
 
+			/* If there is no edge, then MFS can be extended with new vertex */
 			if (!conflict)
-				mfsIndices.insert(i);
+				mfs.insert(v);
 		}
-
-		Set<BVar> mfs;
-
-		for (size_t i : mfsIndices)
-			mfs.insert(_indicatorVars[i]);
 
 		return mfs;
 	}
+	/* Solver returned UNSAT, no remaining MFS */
 	else
 	{
 		return nullopt;
