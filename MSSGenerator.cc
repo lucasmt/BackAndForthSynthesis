@@ -8,6 +8,15 @@ using NSPACE::IntRange;
 using NSPACE::IntOption;
 using NSPACE::BoolOption;
 
+#include <chrono>
+#include <iostream>
+
+using std::chrono::system_clock;
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+using std::cout;
+using std::endl;
+
 /**
  * Solver options copied from open-wbo.
  */
@@ -179,12 +188,20 @@ Optional<Set<BVar>> MSSGenerator::newMSSCovering(const Set<BVar>& vars)
 
   maxSatSolver.loadFormula(copy);
 
+  auto start = system_clock::now();
+
   bool success = maxSatSolver.search();
+
+  auto time = duration_cast<milliseconds>(system_clock::now() - start);
+
+  cout << time.count() << " ";
 
   if (success) /*< search was successful, return MSS */
   {
     Set<BVar> mss = variablesSetToTrue(maxSatSolver.getModel());
     blockMSS(mss);
+
+    cout << setIntersection(allIndicatorVars, mss).size() << " " << (vars.size() < mss.size()) << endl;
 
     return mss;
   }

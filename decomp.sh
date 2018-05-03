@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for FILE in RunSupratikBenchmarks/*.qdimacs
+for FILE in benchmarks/*.qdimacs
 do
 	export FILENAME=$(basename ${FILE//.qdimacs/})
 	sbatch decomp.slurm
