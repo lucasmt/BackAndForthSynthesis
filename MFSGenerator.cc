@@ -1,4 +1,5 @@
 #include "MFSGenerator.hpp"
+#include "PriorityQueue.hpp"
 
 #include <utility>
 
@@ -13,13 +14,18 @@ using std::move;
 MFSGenerator::MFSGenerator(Set<BVar> relevantIndicators,
                            Vector<BVar> indicatorVars,
                            Graph<size_t> conflictGraph)
-	: _relevantIndicators(relevantIndicators)
+	: _relevantIndicators(move(relevantIndicators))
 	, _indicatorVars(move(indicatorVars))
 	, _conflictGraph(move(conflictGraph))
 {
+	for (BVar var : _relevantIndicators)
+	{
+		_appearances[var] = 0;
+	}
+
 	for (size_t i = 0; i < _indicatorVars.size(); i++)
 	{
-		_index[_indicatorVars[i]] = i;
+		_index[_indicatorVars[i]] = i;		
 	}
 
 	_satSolver.setIncrementalMode();
@@ -43,33 +49,40 @@ Optional<Set<BVar>> MFSGenerator::newMFS()
 	{	
 		/* Split variables between those in the model and those not in the model */
 		Set<BVar> inModel;
-		Set<BVar> notInModel;
 
 		for (int i = 0; i < _satSolver.model.size(); i++)
 		{
 			if (_satSolver.model[i] == l_True)
 				inModel.insert(_indicatorVars[i]);
-			else
-				notInModel.insert(_indicatorVars[i]);
 		}
 
 		/* Set of indicator variables in the model, will be extended to an MFS */
 		Set<BVar> mfs = setIntersection(inModel, _relevantIndicators);
 
-		/* For every indicator variable not in the model, try to extend MFS with that variable */
-		for (BVar v : setIntersection(notInModel, _relevantIndicators))
+		// Initialize a priority queue where the top element is the one in the least MSS seen so far.
+		MinQueue<size_t, BVar> pqueue =
+			makeMinQueue<size_t, BVar, Map<BVar, size_t>::iterator>(_appearances.begin(), _appearances.end());
+
+		// Try to extend the MFS in order, with priority to elements that have not been in many MSS.
+		while (!pqueue.empty())
 		{
-			auto isNeighbor = [this, v] (BVar u)
+			BVar v = popTop(pqueue);
+
+			// Test if the vertex is already in the MFS
+			if (mfs.find(v) == mfs.end())
 			{
-				return _conflictGraph.edgeExists(_index[v], _index[u]);
-			};
+				auto isNeighbor = [this, v] (BVar u)
+					{
+						return _conflictGraph.edgeExists(_index[v], _index[u]);
+					};
 
-			/* Test if there is an edge between the new vertex and any vertex already in the MFS */
-			bool conflict = std::any_of(mfs.begin(), mfs.end(), isNeighbor);
+				/* Test if there is an edge between the new vertex and any vertex already in the MFS */
+				bool conflict = std::any_of(mfs.begin(), mfs.end(), isNeighbor);
 
-			/* If there is no edge, then MFS can be extended with new vertex */
-			if (!conflict)
-				mfs.insert(v);
+				/* If there is no edge, then MFS can be extended with new vertex */
+				if (!conflict)
+					mfs.insert(v);
+			}
 		}
 
 		return mfs;
@@ -83,6 +96,11 @@ Optional<Set<BVar>> MFSGenerator::newMFS()
 
 void MFSGenerator::blockMSS(const Set<BVar>& mss)
 {
+	for (BVar inMSS : setIntersection(_relevantIndicators, mss))
+	{
+		_appearances[inMSS]++;
+	}
+	
 	vec<Lit> glucoseClause;
 
 	for (BVar notInMSS : setDifference(_relevantIndicators, mss))

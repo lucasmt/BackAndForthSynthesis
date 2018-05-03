@@ -18,6 +18,8 @@ class MFSGenerator
 	Graph<size_t> _conflictGraph; /*< graph where every MIS represents an MFS */
 	Map<BVar, size_t> _index; /*< _index[v] == i iff _indicatorVars[i] = v */
 
+	Map<BVar, size_t> _appearances; /*< number of MSS each relevant indicator appears in */
+
 	Glucose::Solver _satSolver; /*< SAT solver used to generate MFS */
 
 public:
