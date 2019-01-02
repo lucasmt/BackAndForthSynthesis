@@ -15,7 +15,7 @@ SOLVERNAME = "Glucose4.1"
 SOLVERDIR  = glucose4.1
 NSPACE     = Glucose
 # THE REMAINING OF THE MAKEFILE SHOULD BE LEFT UNCHANGED
-EXEC       = decomp
+EXEC       = bafsyn
 DEPDIR     = mtl utils core
 DEPDIR 	   += ../..
 DEPDIR     +=  ../../encodings ../../algorithms ../../graph ../../classifier
@@ -23,7 +23,7 @@ DEPDIR     += ../../../quick-cliques/src
 MROOT      = $(PWD)/open-wbo/solvers/$(SOLVERDIR)
 LFLAGS     += -lgmpxx -lgmp
 # The flag MYDEBUG below indicates a debugging for Lucas/Dror code. Turn to 0 before final use. 4/2/2018  - Debug =0 - no output, Debug = 1 - usual output, Debug = 2 - debug mode
-CFLAGS     = -Wall -Wno-parentheses -std=c++11 -DNSPACE=$(NSPACE) -DSOLVERNAME=$(SOLVERNAME) -DVERSION=$(VERSION) -DALLOW_ALLOC_ZERO_BYTES -DMYDEBUG=0 #-g 
+CFLAGS     = -Wall -Wno-parentheses -std=c++11 -DNSPACE=$(NSPACE) -DSOLVERNAME=$(SOLVERNAME) -DVERSION=$(VERSION) -DINCREMENTAL -DALLOW_ALLOC_ZERO_BYTES -O3 -DMYDEBUG=0 #-g 
 ifeq ($(VERSION),simp)
 DEPDIR     += simp
 CFLAGS     += -DSIMP=1 

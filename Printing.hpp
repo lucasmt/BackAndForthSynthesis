@@ -15,6 +15,11 @@
 void print(const Vector<BLit>& lits, const std::string& separator, const std::string& varName);
 
 /**
+ * Prints a set of unsigned integers.
+ */
+void print(const Set<size_t>& is);
+
+/**
  * Prints a set of variables in the form "{ x:i_1, x:i_2, ..., x:i_k }",
  * where i_1, ..., i_k are the variable identifiers and x is the given variable name.
  */
