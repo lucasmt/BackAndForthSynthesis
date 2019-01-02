@@ -15,7 +15,7 @@ SOLVERNAME = "Glucose4.1"
 SOLVERDIR  = glucose4.1
 NSPACE     = Glucose
 # THE REMAINING OF THE MAKEFILE SHOULD BE LEFT UNCHANGED
-EXEC       = decomp
+EXEC       = bafsyn
 DEPDIR     = mtl utils core
 DEPDIR 	   += ../..
 DEPDIR     +=  ../../encodings ../../algorithms ../../graph ../../classifier

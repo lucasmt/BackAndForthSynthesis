@@ -54,7 +54,7 @@ Optional<Set<BVar>> MFSGenerator::newMFS()
 	{	
 	  auto time = duration_cast<milliseconds>(system_clock::now() - start);
 
-	  cout << time.count() << " ";
+	  //cout << time.count() << " ";
 
 		/* Split variables between those in the model and those not in the model */
 		Set<BVar> inModel;
@@ -68,7 +68,7 @@ Optional<Set<BVar>> MFSGenerator::newMFS()
 				notInModel.insert(_indicatorVars[i]);
 		}
 
-		cout << inModel.size() << " ";
+		//cout << inModel.size() << " ";
 
 		/* Set of indicator variables in the model, will be extended to an MFS */
 		Set<BVar> mfs = setIntersection(inModel, _relevantIndicators);
@@ -93,7 +93,7 @@ Optional<Set<BVar>> MFSGenerator::newMFS()
 
 		time = duration_cast<milliseconds>(system_clock::now() - start);
 
-		cout << time.count() << " " << mfs.size() << " " << (inModel.size() < mfs.size()) << " ";
+		//cout << time.count() << " " << mfs.size() << " " << (inModel.size() < mfs.size()) << " ";
 
 		return mfs;
 	}
@@ -102,7 +102,7 @@ Optional<Set<BVar>> MFSGenerator::newMFS()
 	{
 	  auto time = duration_cast<milliseconds>(system_clock::now() - start);
 
-	  cout << time.count() << endl;
+	  //cout << time.count() << endl;
 
 		return nullopt;
 	}
